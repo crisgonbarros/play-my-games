@@ -269,14 +269,44 @@
   .ctrl-btn.hold-btn { font-size: 11px; font-family: 'Orbitron', monospace; letter-spacing: 1px; }
 
   /* ── RESPONSIVE ── */
-  @media (max-width: 600px) or (max-height: 700px) {
-    #app { flex-direction: column; align-items: center; gap: 8px; overflow-y: auto; padding: 8px; }
-    #side-left, #side-right { flex-direction: row; flex-wrap: wrap; min-width: unset; width: 100%; max-width: 340px; justify-content: space-between; padding: 10px; gap: 10px; }
-    .panel-value { font-size: 16px; }
+
+  /* Mobile e tablet portrait: empilha verticalmente */
+  @media (max-width: 768px), (max-height: 700px) {
+    #app { flex-direction: column; align-items: center; gap: 6px; overflow-y: auto; padding: 6px; }
+
+    /* Painéis viram faixa horizontal compacta */
+    #side-left, #side-right {
+      flex-direction: row;
+      flex-wrap: wrap;
+      min-width: unset;
+      width: 100%;
+      max-width: 400px;
+      justify-content: space-between;
+      padding: 6px 10px;
+      gap: 6px;
+    }
+
+    /* Valores menores nos painéis */
+    .panel-value { font-size: 13px; }
+    .panel-label { font-size: 8px; letter-spacing: 1px; }
+    .panel { padding: 6px 10px; gap: 8px; min-width: unset; }
+
+    /* Mini canvas menores no mobile */
+    .mini-canvas { width: 52px; height: 52px; }
+
+    /* Controles sempre visíveis em telas pequenas/médias */
     #controls { display: flex; }
+
+    /* Botões de controle menores para caber tudo na tela */
+    .ctrl-btn { width: 44px; height: 44px; font-size: 18px; border-radius: 8px; }
+    .ctrl-btn.wide { width: 72px; font-size: 10px; }
+    .ctrl-btn.hold-btn { font-size: 9px; }
+    .ctrl-row { gap: 6px; }
+    #controls { gap: 6px; padding: 4px 0; }
   }
 
-  @media (min-width: 601px) {
+  /* Desktop: layout horizontal normal */
+  @media (min-width: 769px) and (min-height: 701px) {
     #app { align-items: center; }
   }
 </style>
@@ -526,8 +556,9 @@ const LEVEL_COLORS = ['#00f5ff','#00ff88','#ffe600','#ff8800','#ff00ff','#ff3355
 const LEVEL_SPEEDS = [800,650,500,380,280,200,140,100,75,50]; // ms per drop
 
 function cellSize() {
-  const maxH = window.innerHeight - (window.innerWidth < 601 ? 220 : 40);
-  const maxW = window.innerWidth < 601 ? window.innerWidth - 32 : Math.min(window.innerWidth * 0.45, 260);
+  const isMobile = window.innerWidth <= 768 || window.innerHeight <= 700;
+  const maxH = window.innerHeight - (isMobile ? 240 : 40);
+  const maxW = isMobile ? window.innerWidth - 32 : Math.min(window.innerWidth * 0.45, 260);
   const byH = Math.floor(maxH / ROWS);
   const byW = Math.floor(maxW / COLS);
   return Math.max(18, Math.min(byH, byW, 32));
