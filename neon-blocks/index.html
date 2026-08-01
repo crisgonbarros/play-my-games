@@ -313,18 +313,16 @@
     margin: 0 auto;
   }
 
+  /* ── TOUCH DEVICES: controles sempre visíveis ── */
+  @media (hover: none) and (pointer: coarse) {
+    #controls { display: flex !important; visibility: visible !important; opacity: 1 !important; }
+  }
+
   /* Mobile portrait only */
   @media (max-width: 600px) {
     #app { flex-direction: column; align-items: center; gap: 4px; padding: 4px; }
-
-    /* Esconder painéis laterais */
     #side-left, #side-right { display: none !important; }
-
-    /* Barra overlay ativa */
     #mobile-bar { display: flex; }
-
-    /* Controles visíveis e maiores */
-    #controls { display: flex !important; }
     .ctrl-btn { width: 52px; height: 52px; font-size: 20px; border-radius: 10px; }
     .ctrl-btn.wide { width: 84px; font-size: 10px; }
     .ctrl-btn.hold-btn { font-size: 10px; letter-spacing: 0px; }
@@ -332,23 +330,17 @@
     #controls { gap: 6px; padding: 4px 0; }
   }
 
-  /* Tablet: 601px–900px — layout vertical com controles visíveis */
+  /* Tablet: 601px–900px */
   @media (min-width: 601px) and (max-width: 900px) {
     #app { flex-direction: column; align-items: center; gap: 6px; padding: 6px; }
     #side-left, #side-right {
       display: flex !important;
-      flex-direction: row;
-      flex-wrap: wrap;
-      min-width: unset;
-      width: 100%;
-      max-width: 500px;
-      justify-content: space-around;
-      padding: 6px 10px;
-      gap: 8px;
+      flex-direction: row; flex-wrap: wrap;
+      min-width: unset; width: 100%; max-width: 500px;
+      justify-content: space-around; padding: 6px 10px; gap: 8px;
     }
     .panel-value { font-size: 14px; }
     .mini-canvas { width: 52px; height: 52px; }
-    #controls { display: flex !important; }
     .ctrl-btn { width: 52px; height: 52px; font-size: 20px; }
     .ctrl-btn.wide { width: 84px; font-size: 10px; }
     .ctrl-btn.hold-btn { font-size: 10px; }
@@ -357,7 +349,7 @@
     #mobile-bar { display: none !important; }
   }
 
-  /* Desktop: ≥ 901px — layout horizontal normal */
+  /* Desktop: ≥ 901px */
   @media (min-width: 901px) {
     #app { align-items: center; flex-direction: row; }
     #side-left, #side-right { display: flex !important; }
@@ -989,6 +981,14 @@ function startGame() {
   document.getElementById('side-left').classList.add('visible');
   document.getElementById('side-right').classList.add('visible');
   document.getElementById('controls').classList.add('visible');
+  // Em dispositivos touch, forçar visibilidade dos controles
+  const isTouchDevice = ('ontouchstart' in window) || navigator.maxTouchPoints > 0;
+  if (isTouchDevice) {
+    const ctrl = document.getElementById('controls');
+    ctrl.style.display = 'flex';
+    ctrl.style.visibility = 'visible';
+    ctrl.style.opacity = '1';
+  }
   const mbBar = document.getElementById('mobile-bar');
   if (mbBar) mbBar.style.visibility = 'visible';
   updateUI();
