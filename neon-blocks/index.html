@@ -313,46 +313,24 @@
     margin: 0 auto;
   }
 
-  /* ── TOUCH DEVICES: controles sempre visíveis ── */
-  @media (hover: none) and (pointer: coarse) {
-    #controls { display: flex !important; visibility: visible !important; opacity: 1 !important; }
-  }
+  /* ── RESPONSIVO ── */
 
-  /* Mobile portrait only */
-  @media (max-width: 600px) {
+  /* Mobile + Tablet: ≤ 900px — coluna, barra overlay, controles abaixo */
+  @media (max-width: 900px) {
     #app { flex-direction: column; align-items: center; gap: 4px; padding: 4px; }
     #side-left, #side-right { display: none !important; }
     #mobile-bar { display: flex; }
+    #controls { display: flex; }
     .ctrl-btn { width: 52px; height: 52px; font-size: 20px; border-radius: 10px; }
     .ctrl-btn.wide { width: 84px; font-size: 10px; }
-    .ctrl-btn.hold-btn { font-size: 10px; letter-spacing: 0px; }
+    .ctrl-btn.hold-btn { font-size: 10px; letter-spacing: 0; }
     .ctrl-row { gap: 6px; }
     #controls { gap: 6px; padding: 4px 0; }
   }
 
-  /* Tablet: 601px–900px */
-  @media (min-width: 601px) and (max-width: 900px) {
-    #app { flex-direction: column; align-items: center; gap: 6px; padding: 6px; }
-    #side-left, #side-right {
-      display: flex !important;
-      flex-direction: row; flex-wrap: wrap;
-      min-width: unset; width: 100%; max-width: 500px;
-      justify-content: space-around; padding: 6px 10px; gap: 8px;
-    }
-    .panel-value { font-size: 14px; }
-    .mini-canvas { width: 52px; height: 52px; }
-    .ctrl-btn { width: 52px; height: 52px; font-size: 20px; }
-    .ctrl-btn.wide { width: 84px; font-size: 10px; }
-    .ctrl-btn.hold-btn { font-size: 10px; }
-    .ctrl-row { gap: 6px; }
-    #controls { gap: 6px; }
-    #mobile-bar { display: none !important; }
-  }
-
-  /* Desktop: ≥ 901px */
+  /* Desktop: ≥ 901px — horizontal com painéis laterais */
   @media (min-width: 901px) {
     #app { align-items: center; flex-direction: row; }
-    #side-left, #side-right { display: flex !important; }
     #mobile-bar { display: none !important; }
   }
 </style>
@@ -637,18 +615,13 @@ const LEVEL_COLORS = ['#00f5ff','#00ff88','#ffe600','#ff8800','#ff00ff','#ff3355
 const LEVEL_SPEEDS = [800,650,500,380,280,200,140,100,75,50]; // ms per drop
 
 function cellSize() {
-  const isMobile = window.innerWidth <= 600;
-  const isTablet = window.innerWidth > 600 && window.innerWidth <= 900;
+  const isMobile = window.innerWidth <= 900;
   const maxH = isMobile
     ? window.innerHeight - 130
-    : isTablet
-      ? window.innerHeight - 260
-      : window.innerHeight - 40;
+    : window.innerHeight - 40;
   const maxW = isMobile
     ? window.innerWidth - 8
-    : isTablet
-      ? Math.min(window.innerWidth - 32, 340)
-      : Math.min(window.innerWidth * 0.45, 260);
+    : Math.min(window.innerWidth * 0.45, 260);
   const byH = Math.floor(maxH / ROWS);
   const byW = Math.floor(maxW / COLS);
   return Math.max(18, Math.min(byH, byW, 32));
@@ -981,14 +954,6 @@ function startGame() {
   document.getElementById('side-left').classList.add('visible');
   document.getElementById('side-right').classList.add('visible');
   document.getElementById('controls').classList.add('visible');
-  // Em dispositivos touch, forçar visibilidade dos controles
-  const isTouchDevice = ('ontouchstart' in window) || navigator.maxTouchPoints > 0;
-  if (isTouchDevice) {
-    const ctrl = document.getElementById('controls');
-    ctrl.style.display = 'flex';
-    ctrl.style.visibility = 'visible';
-    ctrl.style.opacity = '1';
-  }
   const mbBar = document.getElementById('mobile-bar');
   if (mbBar) mbBar.style.visibility = 'visible';
   updateUI();
@@ -1130,6 +1095,94 @@ document.addEventListener('keydown', e => {
     case 'p': case 'P': togglePause(); break;
   }
 });
+
+// ── TOUCH GESTURES no tabuleiro ──
+(function() {
+  let touchStartX = 0, touchStartY = 0;
+  let touchStartTime = 0;
+  let lastTapTime = 0;
+  let moveInterval = null;
+  let gestureHandled = false;
+  const SWIPE_THRESHOLD = 20;   // px mínimo para considerar swipe
+  const TAP_MAX_DIST   = 12;    // px máximo para considerar tap
+  const TAP_MAX_TIME   = 220;   // ms máximo para tap
+  const DOUBLE_TAP_GAP = 300;   // ms entre dois taps para double tap
+  const REPEAT_DELAY   = 80;    // ms entre repetições ao segurar
+
+  canvas.addEventListener('touchstart', e => {
+    if (!gameRunning || gamePaused || gameOver) return;
+    e.preventDefault();
+    resumeAC();
+    const t = e.touches[0];
+    touchStartX = t.clientX;
+    touchStartY = t.clientY;
+    touchStartTime = Date.now();
+    gestureHandled = false;
+    clearInterval(moveInterval);
+  }, { passive: false });
+
+  canvas.addEventListener('touchmove', e => {
+    if (!gameRunning || gamePaused || gameOver) return;
+    e.preventDefault();
+    const t = e.touches[0];
+    const dx = t.clientX - touchStartX;
+    const dy = t.clientY - touchStartY;
+
+    // Movimento horizontal — mover a peça célula por célula
+    if (Math.abs(dx) > Math.abs(dy) && Math.abs(dx) > SWIPE_THRESHOLD) {
+      gestureHandled = true;
+      const steps = Math.floor(Math.abs(dx) / CELL);
+      const dir = dx > 0 ? 1 : -1;
+      const moved = steps - (gestureHandled._lastSteps || 0);
+      if (moved > 0) {
+        for (let i = 0; i < moved; i++) {
+          dir > 0 ? moveRight() : moveLeft();
+        }
+        gestureHandled._lastSteps = steps;
+      }
+    }
+
+    // Swipe para baixo — soft drop contínuo
+    if (dy > SWIPE_THRESHOLD && Math.abs(dy) > Math.abs(dx)) {
+      gestureHandled = true;
+      if (!moveInterval) {
+        moveDown();
+        moveInterval = setInterval(moveDown, REPEAT_DELAY);
+      }
+    }
+  }, { passive: false });
+
+  canvas.addEventListener('touchend', e => {
+    if (!gameRunning || gamePaused || gameOver) return;
+    e.preventDefault();
+    clearInterval(moveInterval);
+    moveInterval = null;
+
+    const t = e.changedTouches[0];
+    const dx = Math.abs(t.clientX - touchStartX);
+    const dy = Math.abs(t.clientY - touchStartY);
+    const dt = Date.now() - touchStartTime;
+    const now = Date.now();
+
+    // Swipe rápido para cima — hard drop
+    if (t.clientY - touchStartY < -SWIPE_THRESHOLD * 2 && dy > dx && dt < 300) {
+      hardDrop();
+      gestureHandled = true;
+    }
+
+    // Tap (sem movimento significativo) — rotacionar
+    if (!gestureHandled && dx < TAP_MAX_DIST && dy < TAP_MAX_DIST && dt < TAP_MAX_TIME) {
+      rotatePiece();
+      lastTapTime = now;
+    }
+
+    // Reset step counter
+    if (gestureHandled && gestureHandled._lastSteps) {
+      gestureHandled._lastSteps = 0;
+    }
+    gestureHandled = false;
+  }, { passive: false });
+})();
 
 // Mobile buttons
 function bindBtn(id, action) {
