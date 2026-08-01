@@ -1100,14 +1100,15 @@ document.addEventListener('keydown', e => {
 (function() {
   let touchStartX = 0, touchStartY = 0;
   let touchStartTime = 0;
-  let lastTapTime = 0;
+  let lastSteps = 0;
   let moveInterval = null;
   let gestureHandled = false;
-  const SWIPE_THRESHOLD = 20;   // px mínimo para considerar swipe
-  const TAP_MAX_DIST   = 12;    // px máximo para considerar tap
-  const TAP_MAX_TIME   = 220;   // ms máximo para tap
-  const DOUBLE_TAP_GAP = 300;   // ms entre dois taps para double tap
-  const REPEAT_DELAY   = 80;    // ms entre repetições ao segurar
+  const SWIPE_H        = 40;   // px mínimo horizontal para mover 1 célula
+  const SWIPE_V_DROP   = 60;   // px mínimo para soft drop
+  const SWIPE_V_HARD   = 120;  // px mínimo swipe rápido para hard drop
+  const TAP_MAX_DIST   = 15;   // px máximo para ser tap
+  const TAP_MAX_TIME   = 200;  // ms máximo para tap
+  const REPEAT_DELAY   = 100;  // ms entre repetições no soft drop
 
   canvas.addEventListener('touchstart', e => {
     if (!gameRunning || gamePaused || gameOver) return;
@@ -1117,8 +1118,10 @@ document.addEventListener('keydown', e => {
     touchStartX = t.clientX;
     touchStartY = t.clientY;
     touchStartTime = Date.now();
+    lastSteps = 0;
     gestureHandled = false;
     clearInterval(moveInterval);
+    moveInterval = null;
   }, { passive: false });
 
   canvas.addEventListener('touchmove', e => {
@@ -1127,23 +1130,28 @@ document.addEventListener('keydown', e => {
     const t = e.touches[0];
     const dx = t.clientX - touchStartX;
     const dy = t.clientY - touchStartY;
+    const absDx = Math.abs(dx);
+    const absDy = Math.abs(dy);
 
-    // Movimento horizontal — mover a peça célula por célula
-    if (Math.abs(dx) > Math.abs(dy) && Math.abs(dx) > SWIPE_THRESHOLD) {
+    // Só processa horizontal se for claramente horizontal
+    if (absDx > absDy * 1.5 && absDx > SWIPE_H) {
       gestureHandled = true;
-      const steps = Math.floor(Math.abs(dx) / CELL);
-      const dir = dx > 0 ? 1 : -1;
-      const moved = steps - (gestureHandled._lastSteps || 0);
-      if (moved > 0) {
-        for (let i = 0; i < moved; i++) {
-          dir > 0 ? moveRight() : moveLeft();
+      clearInterval(moveInterval);
+      moveInterval = null;
+
+      // Quantas células mover (1 célula a cada SWIPE_H pixels)
+      const steps = Math.floor(absDx / SWIPE_H);
+      const newSteps = steps - lastSteps;
+      if (newSteps > 0) {
+        for (let i = 0; i < newSteps; i++) {
+          dx > 0 ? moveRight() : moveLeft();
         }
-        gestureHandled._lastSteps = steps;
+        lastSteps = steps;
       }
     }
 
-    // Swipe para baixo — soft drop contínuo
-    if (dy > SWIPE_THRESHOLD && Math.abs(dy) > Math.abs(dx)) {
+    // Só processa vertical se for claramente vertical
+    if (absDy > absDx * 1.5 && absDy > SWIPE_V_DROP) {
       gestureHandled = true;
       if (!moveInterval) {
         moveDown();
@@ -1159,28 +1167,22 @@ document.addEventListener('keydown', e => {
     moveInterval = null;
 
     const t = e.changedTouches[0];
-    const dx = Math.abs(t.clientX - touchStartX);
-    const dy = Math.abs(t.clientY - touchStartY);
+    const dx = t.clientX - touchStartX;
+    const dy = t.clientY - touchStartY;
+    const absDx = Math.abs(dx);
+    const absDy = Math.abs(dy);
     const dt = Date.now() - touchStartTime;
-    const now = Date.now();
 
     // Swipe rápido para cima — hard drop
-    if (t.clientY - touchStartY < -SWIPE_THRESHOLD * 2 && dy > dx && dt < 300) {
+    if (!gestureHandled && dy < -SWIPE_V_HARD && absDy > absDx && dt < 400) {
       hardDrop();
-      gestureHandled = true;
+      return;
     }
 
-    // Tap (sem movimento significativo) — rotacionar
-    if (!gestureHandled && dx < TAP_MAX_DIST && dy < TAP_MAX_DIST && dt < TAP_MAX_TIME) {
+    // Tap limpo — rotacionar
+    if (!gestureHandled && absDx < TAP_MAX_DIST && absDy < TAP_MAX_DIST && dt < TAP_MAX_TIME) {
       rotatePiece();
-      lastTapTime = now;
     }
-
-    // Reset step counter
-    if (gestureHandled && gestureHandled._lastSteps) {
-      gestureHandled._lastSteps = 0;
-    }
-    gestureHandled = false;
   }, { passive: false });
 })();
 
