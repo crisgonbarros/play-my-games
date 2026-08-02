@@ -29,6 +29,12 @@
     overflow: hidden;
     display: flex; align-items: center; justify-content: center;
   }
+  /* Permitir scroll interno na overlay do game over */
+  #screen-gameover {
+    overflow-y: auto;
+    justify-content: flex-start;
+    padding-top: 20px;
+  }
 
   /* Animated background grid */
   body::before {
@@ -126,10 +132,11 @@
     align-items: center; justify-content: center;
     background: rgba(8,8,16,0.92);
     border-radius: 4px;
-    gap: 12px;
+    gap: 10px;
     z-index: 10;
-    overflow: auto;
-    padding: 12px 8px;
+    overflow-y: auto;
+    overflow-x: hidden;
+    padding: 16px 12px;
   }
 
   .overlay.hidden { display: none; }
@@ -176,7 +183,47 @@
   .btn:hover { transform: scale(1.05); box-shadow: 0 0 30px rgba(0,245,255,0.7); }
   .btn:active { transform: scale(0.97); }
 
-  .stat-row { display: flex; gap: 24px; justify-content: center; flex-wrap: wrap; }
+  .go-input {
+    width: 100%;
+    background: rgba(255,255,255,0.05);
+    border: 1px solid rgba(0,245,255,0.2);
+    border-radius: 5px;
+    padding: 8px 12px;
+    color: #e0e0ff;
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 12px;
+    margin-bottom: 6px;
+    outline: none;
+    box-sizing: border-box;
+    max-width: 260px;
+  }
+  .go-input:focus { border-color: rgba(0,245,255,0.6); }
+  .go-input::placeholder { color: #334466; }
+
+  #go-form { display:flex; flex-direction:column; align-items:center; width:100%; }
+
+  .rank-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 4px 8px;
+    border-radius: 4px;
+    font-size: 10px;
+    margin-bottom: 2px;
+    width: 100%;
+    box-sizing: border-box;
+  }
+  .rank-row.destaque {
+    background: rgba(0,245,255,0.1);
+    border: 1px solid rgba(0,245,255,0.3);
+    color: #00f5ff;
+    font-weight: 700;
+  }
+  .rank-row.normal { color: #8899bb; }
+  .rank-pos { min-width: 28px; font-family:'Orbitron',monospace; }
+  .rank-nome { flex: 1; text-align:left; padding: 0 6px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; max-width:120px; }
+  .rank-pts { font-family:'Orbitron',monospace; white-space:nowrap; }
+  .stat-row { display: flex; gap: 16px; justify-content: center; flex-wrap: wrap; }
   .stat-item { text-align: center; }
   .stat-item .lbl { font-size: 9px; letter-spacing: 2px; color: var(--dim); }
   .stat-item .val {
@@ -441,7 +488,25 @@
     <div class="overlay hidden" id="screen-gameover">
       <h1>GAME OVER</h1>
       <div class="stat-row" id="go-stats"></div>
-      <button class="btn" id="btn-restart">PLAY AGAIN</button>
+
+      <!-- FORMULÁRIO (primeira vez) -->
+      <div id="go-form">
+        <p style="font-size:10px;color:#556688;text-align:center;margin-bottom:8px;letter-spacing:1px;">SALVE SUA PONTUAÇÃO NO RANKING</p>
+        <input class="go-input" id="inp-nome"     type="text"  placeholder="Seu nome" maxlength="40">
+        <input class="go-input" id="inp-email"    type="email" placeholder="Seu email" maxlength="80">
+        <input class="go-input" id="inp-telefone" type="tel"   placeholder="Seu WhatsApp (ex: 67 99999-0000)" maxlength="20">
+        <button class="btn" id="btn-salvar">SALVAR PONTUAÇÃO</button>
+        <p id="go-form-msg" style="font-size:10px;color:#556688;text-align:center;margin-top:4px;min-height:16px;"></p>
+      </div>
+
+      <!-- RESULTADO (após salvar) -->
+      <div id="go-resultado" style="display:none;text-align:center;">
+        <div id="go-rank-msg" style="font-family:'Orbitron',monospace;font-size:13px;font-weight:700;margin-bottom:8px;"></div>
+        <div id="go-rank-list" style="width:100%;margin-bottom:8px;"></div>
+        <p id="go-alterar" style="font-size:9px;color:#334;cursor:pointer;text-decoration:underline;letter-spacing:1px;">Não é você? Alterar dados</p>
+      </div>
+
+      <button class="btn" id="btn-restart" style="margin-top:4px;">JOGAR DE NOVO</button>
     </div>
   </div>
 
@@ -482,7 +547,7 @@
 //  NEON BLOCKS — Game Engine
 // ═══════════════════════════════════════════
 
-const COLS = 10, ROWS = 20;
+const COLS = 12, ROWS = 22;
 let CELL; // computed from canvas size
 
 const canvas = document.getElementById('board');
@@ -967,6 +1032,17 @@ function startGame() {
   piece = randomPiece();
   removeBoardGlow();
   hideScreens();
+  // Limpar formulário para nova partida
+  const inpNome = document.getElementById('inp-nome');
+  const inpEmail = document.getElementById('inp-email');
+  const inpTel = document.getElementById('inp-telefone');
+  const btnSalvar = document.getElementById('btn-salvar');
+  const goMsg = document.getElementById('go-form-msg');
+  if (inpNome) inpNome.value = '';
+  if (inpEmail) inpEmail.value = '';
+  if (inpTel) inpTel.value = '';
+  if (btnSalvar) { btnSalvar.disabled = false; btnSalvar.textContent = 'SALVAR PONTUAÇÃO'; }
+  if (goMsg) { goMsg.textContent = ''; }
   document.getElementById('side-left').classList.add('visible');
   document.getElementById('side-right').classList.add('visible');
   document.getElementById('controls').classList.add('visible');
@@ -996,6 +1072,7 @@ function endGame() {
     <div class="stat-item"><div class="lbl">Best Combo</div><div class="val">×${bestCombo}</div></div>
   `;
   showScreen('screen-gameover');
+  mostrarGameOver();
 }
 
 function togglePause() {
@@ -1251,11 +1328,191 @@ window.addEventListener('resize', () => {
   }
 });
 
+// ═══════════════════════════════════════════
+//  API — RANKING + LEADS
+// ═══════════════════════════════════════════
+
+const API_URL   = "https://script.google.com/macros/s/AKfycbw2NeRDWi0a8ure0At74D2cP0zCsL_I84IrUz7PDmqoVv0PjoFkmJjOYq1-t4mqEXHdjg/exec";
+const API_TOKEN = "nb_token_2026_@cristiano";
+
+// Salvar/carregar dados do jogador no localStorage
+function getDadosJogador() {
+  try { return JSON.parse(localStorage.getItem('nb_player') || 'null'); } catch(e) { return null; }
+}
+function salvarDadosJogador(dados) {
+  localStorage.setItem('nb_player', JSON.stringify(dados));
+}
+
+// Buscar ranking top 10
+async function buscarRanking() {
+  try {
+    const res = await fetch(`${API_URL}?token=${encodeURIComponent(API_TOKEN)}`);
+    return await res.json();
+  } catch(e) { return null; }
+}
+
+// Enviar pontuação
+async function enviarPontuacao(nome, email, telefone, pontuacao) {
+  try {
+    const res = await fetch(API_URL, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ token: API_TOKEN, nome, email, telefone, pontuacao })
+    });
+    return await res.json();
+  } catch(e) { return null; }
+}
+
+// Sanitizar texto para evitar XSS
+function sanitize(str) {
+  return String(str)
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#x27;');
+}
+
+// Renderizar ranking na tela de game over
+function renderRanking(rankingData, posicaoJogador, nomeJogador, melhorPontuacaoAtual) {
+  const lista = document.getElementById('go-rank-list');
+  if (!rankingData || !rankingData.ranking) { lista.innerHTML = ''; return; }
+
+  const medalhas = ['🥇','🥈','🥉'];
+  let html = '';
+
+  rankingData.ranking.forEach((item, idx) => {
+    const ehJogador = item.nome === nomeJogador;
+    const pos = medalhas[idx] || `${item.posicao}º`;
+    html += `<div class="rank-row ${ehJogador ? 'destaque' : 'normal'}">
+      <span class="rank-pos">${sanitize(pos)}</span>
+      <span class="rank-nome">${sanitize(item.nome)}</span>
+      <span class="rank-pts">${item.pontuacao.toLocaleString()}</span>
+    </div>`;
+  });
+
+  // Se jogador não está no top 10, mostrar posição dele
+  const noTop10 = rankingData.ranking.some(r => r.nome === nomeJogador);
+  if (!noTop10 && posicaoJogador > 10) {
+    html += `<div style="text-align:center;color:#334466;font-size:9px;padding:2px 0;">···</div>`;
+    html += `<div class="rank-row destaque">
+      <span class="rank-pos">${sanitize(String(posicaoJogador))}º</span>
+      <span class="rank-nome">${sanitize(nomeJogador)}</span>
+      <span class="rank-pts">${melhorPontuacaoAtual.toLocaleString()}</span>
+    </div>`;
+  }
+
+  lista.innerHTML = html;
+}
+
+// Mostrar tela de game over com lógica de formulário
+async function mostrarGameOver() {
+  const goForm      = document.getElementById('go-form');
+  const goResultado = document.getElementById('go-resultado');
+  const goRankMsg   = document.getElementById('go-rank-msg');
+  const goMsg       = document.getElementById('go-form-msg');
+  const jogador     = getDadosJogador();
+
+  if (jogador) {
+    // ── JÁ CADASTRADO: mostrar nome e enviar direto ──
+    goForm.style.display      = 'none';
+    goResultado.style.display = 'block';
+    goRankMsg.innerHTML = `👋 Olá, <span style="color:#00f5ff;">${sanitize(jogador.nome)}</span>!<br><span style="font-size:10px;color:#556688;">Salvando sua pontuação...</span>`;
+    goRankMsg.style.color = '#e0e0ff';
+
+    const res = await enviarPontuacao(jogador.nome, jogador.email, jogador.telefone, score);
+
+    if (res && res.ok) {
+      if (res.ehRecorde) {
+        goRankMsg.innerHTML = `🏆 Novo recorde! Você está em <span style="color:#00f5ff;font-size:16px;">#${res.posicao}</span> de ${res.totalJogadores} jogadores!`;
+        goRankMsg.style.color = '#00f5ff';
+      } else {
+        goRankMsg.innerHTML = `Seu recorde é <strong>${res.melhorPontuacao.toLocaleString()}</strong> — posição <strong>#${res.posicao}</strong><br><span style="color:#556688;font-size:10px;">Nessa partida você fez ${score.toLocaleString()}. Continue tentando! 💪</span>`;
+        goRankMsg.style.color = '#e0e0ff';
+      }
+      const ranking = await buscarRanking();
+      const melhor1 = res.ehRecorde ? res.pontuacaoAtual : res.melhorPontuacao;
+      renderRanking(ranking, res.posicao, jogador.nome, melhor1);
+    } else {
+      goRankMsg.textContent = '⚠️ Erro ao salvar. Tente novamente.';
+      goRankMsg.style.color = '#ff3355';
+    }
+  } else {
+    // ── PRIMEIRA VEZ: mostrar formulário ──
+    goForm.style.display      = 'flex';
+    goResultado.style.display = 'none';
+  }
+}
+
+// Botão salvar pontuação
+document.getElementById('btn-salvar').addEventListener('click', async () => {
+  const nome     = document.getElementById('inp-nome').value.trim();
+  const email    = document.getElementById('inp-email').value.trim();
+  const telefone = document.getElementById('inp-telefone').value.trim();
+  const goMsg    = document.getElementById('go-form-msg');
+
+  if (!nome || !email || !telefone) {
+    goMsg.textContent = '⚠️ Preencha todos os campos.';
+    goMsg.style.color = '#ff3355';
+    return;
+  }
+  const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+  if (!emailRegex.test(email)) {
+    goMsg.textContent = '⚠️ Email inválido. Ex: nome@email.com';
+    goMsg.style.color = '#ff3355';
+    return;
+  }
+
+  goMsg.textContent = '⏳ Salvando...';
+  goMsg.style.color = '#556688';
+  document.getElementById('btn-salvar').disabled = true;
+
+  const res = await enviarPontuacao(nome, email, telefone, score);
+
+  if (res && res.ok) {
+    // Salvar dados localmente
+    salvarDadosJogador({ nome, email, telefone });
+
+    // Mostrar resultado
+    document.getElementById('go-form').style.display      = 'none';
+    document.getElementById('go-resultado').style.display = 'block';
+
+    const goRankMsg = document.getElementById('go-rank-msg');
+    if (res.ehRecorde || res.novoLead) {
+      goRankMsg.innerHTML = `🏆 Você está em <span style="color:#00f5ff;font-size:16px;">#${res.posicao}</span> de ${res.totalJogadores} jogadores!`;
+      goRankMsg.style.color = '#00f5ff';
+    } else {
+      goRankMsg.innerHTML = `Seu recorde é <strong>${res.melhorPontuacao.toLocaleString()}</strong> — posição <strong>#${res.posicao}</strong><br><span style="color:#556688;font-size:10px;">Nessa partida você fez ${score.toLocaleString()}. Continue tentando! 💪</span>`;
+      goRankMsg.style.color = '#e0e0ff';
+    }
+
+    const ranking = await buscarRanking();
+    const melhor2 = res.ehRecorde || res.novoLead ? res.pontuacaoAtual : res.melhorPontuacao;
+    renderRanking(ranking, res.posicao, nome, melhor2);
+  } else {
+    goMsg.textContent = '⚠️ Erro ao conectar. Verifique sua conexão e tente novamente.';
+    goMsg.style.color = '#ff3355';
+    const btnSalvar = document.getElementById('btn-salvar');
+    btnSalvar.disabled = false;
+    btnSalvar.textContent = 'TENTAR NOVAMENTE';
+  }
+});
+
+// Alterar dados
+document.getElementById('go-alterar').addEventListener('click', () => {
+  localStorage.removeItem('nb_player');
+  document.getElementById('go-resultado').style.display = 'none';
+  document.getElementById('go-form').style.display      = 'flex';
+  document.getElementById('inp-nome').value     = '';
+  document.getElementById('inp-email').value    = '';
+  document.getElementById('inp-telefone').value = '';
+});
+
 // ── INIT ──
 resizeCanvas();
 
 function syncPanelWidth() {
-  const isMobile = window.innerWidth <= 768 || window.innerHeight <= 700;
+  const isMobile = window.innerWidth <= 900;
   if (isMobile) {
     const w = canvas.width * 1.2;
     const sideLeft = document.getElementById('side-left');
