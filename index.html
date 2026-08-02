@@ -397,5 +397,227 @@
   <p>By @cristiano.barros1 ® 2026</p>
 </footer>
 
+<!-- Botão de música fixo -->
+<button id="music-btn" title="Música" onclick="toggleMusic()" style="
+  position: fixed; bottom: 20px; right: 20px;
+  width: 44px; height: 44px;
+  background: rgba(0,245,255,0.08);
+  border: 1px solid rgba(0,245,255,0.3);
+  border-radius: 50%;
+  color: #00f5ff;
+  font-size: 18px;
+  cursor: pointer;
+  z-index: 999;
+  display: flex; align-items: center; justify-content: center;
+  transition: background 0.2s, box-shadow 0.2s;
+  box-shadow: 0 0 10px rgba(0,245,255,0.2);
+">🔇</button>
+
+<script>
+// ═══════════════════════════════════════
+//  NEON BLOCKS — Techno Minimal Music
+// ═══════════════════════════════════════
+const AC = new (window.AudioContext || window.webkitAudioContext)();
+let musicPlaying = false;
+let scheduledNodes = [];
+let loopTimeout = null;
+
+// BPM e timing
+const BPM   = 128;
+const STEP  = 60 / BPM / 4; // duração de 1/16 nota
+
+// Master gain
+const master = AC.createGain();
+master.gain.value = 0.0;
+master.connect(AC.destination);
+
+// Compressor para evitar clipping
+const comp = AC.createDynamicsCompressor();
+comp.threshold.value = -12;
+comp.ratio.value = 4;
+comp.connect(master);
+
+// Reverb simples via ConvolverNode
+function createReverb(decay) {
+  const conv = AC.createConvolver();
+  const len  = AC.sampleRate * decay;
+  const buf  = AC.createBuffer(2, len, AC.sampleRate);
+  for (let c = 0; c < 2; c++) {
+    const d = buf.getChannelData(c);
+    for (let i = 0; i < len; i++) d[i] = (Math.random() * 2 - 1) * Math.pow(1 - i / len, 2);
+  }
+  conv.buffer = buf;
+  return conv;
+}
+const reverb = createReverb(1.2);
+reverb.connect(comp);
+
+// Delay feedback
+const delay      = AC.createDelay(0.5);
+const delayGain  = AC.createGain();
+delay.delayTime.value  = STEP * 4;
+delayGain.gain.value   = 0.25;
+delay.connect(delayGain);
+delayGain.connect(delay);
+delay.connect(comp);
+
+// ── Oscilador com envelope ──
+function playNote(freq, type, start, dur, vol, dest, detune) {
+  const osc  = AC.createOscillator();
+  const gain = AC.createGain();
+  osc.type = type || 'sawtooth';
+  osc.frequency.value = freq;
+  if (detune) osc.detune.value = detune;
+  osc.connect(gain);
+  gain.connect(dest || comp);
+  gain.gain.setValueAtTime(0, start);
+  gain.gain.linearRampToValueAtTime(vol, start + 0.01);
+  gain.gain.exponentialRampToValueAtTime(0.001, start + dur);
+  osc.start(start);
+  osc.stop(start + dur + 0.05);
+  scheduledNodes.push(osc);
+}
+
+// ── Kick drum via oscilador ──
+function playKick(t) {
+  const osc  = AC.createOscillator();
+  const gain = AC.createGain();
+  osc.frequency.setValueAtTime(160, t);
+  osc.frequency.exponentialRampToValueAtTime(40, t + 0.08);
+  gain.gain.setValueAtTime(1.2, t);
+  gain.gain.exponentialRampToValueAtTime(0.001, t + 0.35);
+  osc.connect(gain);
+  gain.connect(comp);
+  osc.start(t); osc.stop(t + 0.4);
+  scheduledNodes.push(osc);
+}
+
+// ── Hi-hat via ruído ──
+function playHat(t, vol) {
+  const buf  = AC.createBuffer(1, AC.sampleRate * 0.05, AC.sampleRate);
+  const data = buf.getChannelData(0);
+  for (let i = 0; i < data.length; i++) data[i] = Math.random() * 2 - 1;
+  const src  = AC.createBufferSource();
+  const filt = AC.createBiquadFilter();
+  const gain = AC.createGain();
+  filt.type = 'highpass'; filt.frequency.value = 8000;
+  gain.gain.setValueAtTime(vol, t);
+  gain.gain.exponentialRampToValueAtTime(0.001, t + 0.05);
+  src.buffer = buf;
+  src.connect(filt); filt.connect(gain); gain.connect(comp);
+  src.start(t);
+  scheduledNodes.push(src);
+}
+
+// ── Linha de baixo (bassline) ──
+// Padrão techno: notas em Cm
+const BASS_NOTES = [65, 65, 0, 65, 58, 0, 65, 0, 63, 0, 65, 58, 0, 63, 65, 0];
+// Hz convertido de MIDI
+function midiToHz(n) { return 440 * Math.pow(2, (n - 69) / 12); }
+
+function scheduleBass(start) {
+  BASS_NOTES.forEach((note, i) => {
+    if (!note) return;
+    const t = start + i * STEP;
+    playNote(midiToHz(note - 12), 'sawtooth', t, STEP * 0.8, 0.35, comp);
+    // Sub-bass
+    playNote(midiToHz(note - 24), 'sine', t, STEP * 1.5, 0.5, comp);
+  });
+}
+
+// ── Acorde pad (atmosférico) ──
+const PAD_CHORD = [48, 55, 60, 63]; // Cm7
+function schedulePad(start) {
+  PAD_CHORD.forEach(note => {
+    playNote(midiToHz(note), 'sine', start, STEP * 16, 0.08, reverb, (Math.random() - 0.5) * 5);
+  });
+}
+
+// ── Arpejo ──
+const ARP_NOTES = [72, 75, 79, 82, 79, 75, 72, 70];
+function scheduleArp(start) {
+  ARP_NOTES.forEach((note, i) => {
+    const t = start + i * STEP * 2;
+    playNote(midiToHz(note), 'square', t, STEP * 1.5, 0.06, delay);
+  });
+}
+
+// ── Percussão (16 steps) ──
+// K = kick, H = hat, h = hat suave
+const DRUMS = ['K','h','H','h', 'K','h','K','H', 'K','h','H','h', 'K','H','K','H'];
+function scheduleDrums(start) {
+  DRUMS.forEach((d, i) => {
+    const t = start + i * STEP;
+    if (d === 'K') playKick(t);
+    if (d === 'H') playHat(t, 0.4);
+    if (d === 'h') playHat(t, 0.15);
+  });
+}
+
+// ── Loop principal (1 compasso = 16 steps) ──
+const BAR = STEP * 16;
+let loopBar = 0;
+
+function scheduleBar(startTime) {
+  scheduleDrums(startTime);
+  scheduleBass(startTime);
+  // Pad a cada 4 compassos
+  if (loopBar % 4 === 0) schedulePad(startTime);
+  // Arpejo a cada 2 compassos, offset de 1
+  if (loopBar % 2 === 1) scheduleArp(startTime);
+  loopBar++;
+}
+
+let nextBarTime = 0;
+function schedulerLoop() {
+  if (!musicPlaying) return;
+  const lookahead = 0.1; // segundos à frente
+  while (nextBarTime < AC.currentTime + lookahead) {
+    scheduleBar(nextBarTime);
+    nextBarTime += BAR;
+  }
+  loopTimeout = setTimeout(schedulerLoop, 50);
+}
+
+// Fade in/out suave
+function fadeGain(targetVal, duration) {
+  master.gain.cancelScheduledValues(AC.currentTime);
+  master.gain.setValueAtTime(master.gain.value, AC.currentTime);
+  master.gain.linearRampToValueAtTime(targetVal, AC.currentTime + duration);
+}
+
+function startMusic() {
+  if (AC.state === 'suspended') AC.resume();
+  musicPlaying = true;
+  loopBar = 0;
+  nextBarTime = AC.currentTime + 0.1;
+  schedulerLoop();
+  fadeGain(0.7, 1.5);
+  document.getElementById('music-btn').textContent = '🔊';
+}
+
+function stopMusic() {
+  musicPlaying = false;
+  clearTimeout(loopTimeout);
+  fadeGain(0, 0.8);
+  setTimeout(() => {
+    scheduledNodes.forEach(n => { try { n.stop(); } catch(e) {} });
+    scheduledNodes = [];
+  }, 900);
+  document.getElementById('music-btn').textContent = '🔇';
+}
+
+function toggleMusic() {
+  if (musicPlaying) stopMusic();
+  else startMusic();
+}
+
+// Iniciar ao primeiro clique do usuário (política do browser)
+document.addEventListener('click', function initMusic() {
+  if (!musicPlaying) startMusic();
+  document.removeEventListener('click', initMusic);
+}, { once: true });
+</script>
+
 </body>
 </html>
