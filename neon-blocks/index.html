@@ -1354,21 +1354,21 @@ async function buscarRanking() {
   } catch(e) { return null; }
 }
 
-// Enviar pontuação via form (evita preflight CORS)
+// Enviar pontuação via GET com params (garante leitura da resposta)
 async function enviarPontuacao(nome, email, telefone, pontuacao) {
   try {
-    const params = new URLSearchParams();
-    params.append('token', API_TOKEN);
-    params.append('nome', nome);
-    params.append('email', email);
-    params.append('telefone', telefone);
-    params.append('pontuacao', pontuacao);
+    const params = new URLSearchParams({
+      token:     API_TOKEN,
+      action:    'salvar',
+      nome:      nome,
+      email:     email,
+      telefone:  telefone,
+      pontuacao: pontuacao
+    });
 
-    const res = await fetch(API_URL, {
-      method: 'POST',
+    const res = await fetch(`${API_URL}?${params.toString()}`, {
+      method:   'GET',
       redirect: 'follow',
-      headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-      body: params.toString()
     });
     return await res.json();
   } catch(e) { return null; }
