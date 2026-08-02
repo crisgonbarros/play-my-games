@@ -1346,7 +1346,9 @@ function salvarDadosJogador(dados) {
 // Buscar ranking top 10
 async function buscarRanking() {
   try {
-    const res = await fetch(`${API_URL}?token=${encodeURIComponent(API_TOKEN)}`);
+    const res = await fetch(`${API_URL}?token=${encodeURIComponent(API_TOKEN)}`, {
+      redirect: 'follow'
+    });
     return await res.json();
   } catch(e) { return null; }
 }
@@ -1356,7 +1358,8 @@ async function enviarPontuacao(nome, email, telefone, pontuacao) {
   try {
     const res = await fetch(API_URL, {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+      redirect: 'follow',
+      headers: { 'Content-Type': 'text/plain' },
       body: JSON.stringify({ token: API_TOKEN, nome, email, telefone, pontuacao })
     });
     return await res.json();
