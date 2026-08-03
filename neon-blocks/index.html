@@ -518,13 +518,7 @@
       </div>
 
       <!-- BOTÃO VER RANKING (aparece após carregamento) -->
-      <button class="btn-rank" id="btn-ver-ranking" style="display:none;" onclick="toggleRankingInline()"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="16" height="16" fill="none"><defs><linearGradient id="rg" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" stop-color="#00f5ff"/><stop offset="100%" stop-color="#cc00ff"/></linearGradient></defs><path d="M8 21h8M12 17v4M7 4H4a1 1 0 0 0-1 1v2a4 4 0 0 0 4 4M17 4h3a1 1 0 0 1 1 1v2a4 4 0 0 1-4 4" stroke="url(#rg)" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/><path d="M7 4h10v7a5 5 0 0 1-10 0V4z" stroke="url(#rg)" stroke-width="1.8" stroke-linejoin="round"/><line x1="8" y1="21" x2="16" y2="21" stroke="url(#rg)" stroke-width="1.8" stroke-linecap="round"/></svg>Ver Ranking</button>
-
-      <!-- RANKING INLINE -->
-      <div id="ranking-inline" style="display:none; width:100%; margin-top:4px; padding-bottom:8px;">
-        <p class="rank-total" id="modal-total" style="font-size:9px; letter-spacing:2px; color:var(--dim); text-align:center; margin-bottom:6px;"></p>
-        <div id="modal-ranking-list" style="width:100%;"></div>
-      </div>
+      <button class="btn-rank" id="btn-ver-ranking" style="display:none;" onclick="abrirModalRanking()"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="16" height="16" fill="none"><defs><linearGradient id="rg" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" stop-color="#00f5ff"/><stop offset="100%" stop-color="#cc00ff"/></linearGradient></defs><path d="M8 21h8M12 17v4M7 4H4a1 1 0 0 0-1 1v2a4 4 0 0 0 4 4M17 4h3a1 1 0 0 1 1 1v2a4 4 0 0 1-4 4" stroke="url(#rg)" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/><path d="M7 4h10v7a5 5 0 0 1-10 0V4z" stroke="url(#rg)" stroke-width="1.8" stroke-linejoin="round"/><line x1="8" y1="21" x2="16" y2="21" stroke="url(#rg)" stroke-width="1.8" stroke-linecap="round"/></svg>Ver Ranking</button>
 
     </div>
 
@@ -590,6 +584,48 @@
       <div class="ctrl-btn" id="btn-right">▶</div>
     </div>
   </div>
+  <!-- MODAL RANKING POP-UP -->
+  <div id="modal-ranking-popup" style="
+    display:none;
+    position:fixed; inset:0;
+    background:rgba(8,8,16,0.92);
+    backdrop-filter:blur(8px);
+    z-index:9999;
+    align-items:center;
+    justify-content:center;
+  ">
+    <div style="
+      background:#0d0d1e;
+      border:1px solid rgba(0,245,255,0.2);
+      border-radius:10px;
+      padding:24px 20px;
+      width:min(340px,90vw);
+      max-height:80vh;
+      overflow-y:auto;
+      display:flex;
+      flex-direction:column;
+      align-items:center;
+      gap:10px;
+      box-shadow:0 0 40px rgba(0,245,255,0.15);
+    ">
+      <h2 style="font-family:'Orbitron',monospace;font-size:16px;font-weight:900;color:#00f5ff;text-shadow:0 0 12px #00f5ff;letter-spacing:3px;margin:0;">RANKING</h2>
+      <p id="popup-total" style="font-size:9px;letter-spacing:2px;color:#556688;margin:0;"></p>
+      <div id="popup-ranking-list" style="width:100%;"></div>
+      <button onclick="fecharModalRanking()" style="
+        font-family:'Orbitron',monospace;
+        font-size:11px;font-weight:700;
+        letter-spacing:2px;
+        color:#0d0d1e;
+        background:#00f5ff;
+        border:none;border-radius:5px;
+        padding:10px 28px;
+        cursor:pointer;
+        margin-top:4px;
+        box-shadow:0 0 16px rgba(0,245,255,0.4);
+      ">FECHAR</button>
+    </div>
+  </div>
+
 </div>
 
 <script>
@@ -1605,32 +1641,37 @@ document.getElementById('go-alterar').addEventListener('click', () => {
 
 // ── RANKING ──
 let rankingCache = null;
-let rankingInlineAberto = false;
 
-function toggleRankingInline() {
-  const el = document.getElementById('ranking-inline');
-  const btn = document.getElementById('btn-ver-ranking');
-  rankingInlineAberto = !rankingInlineAberto;
-  el.style.display = rankingInlineAberto ? 'block' : 'none';
-  const svgIcon = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="16" height="16" fill="none"><defs><linearGradient id="rg" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" stop-color="#00f5ff"/><stop offset="100%" stop-color="#cc00ff"/></linearGradient></defs><path d="M8 21h8M12 17v4M7 4H4a1 1 0 0 0-1 1v2a4 4 0 0 0 4 4M17 4h3a1 1 0 0 1 1 1v2a4 4 0 0 1-4 4" stroke="url(#rg)" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/><path d="M7 4h10v7a5 5 0 0 1-10 0V4z" stroke="url(#rg)" stroke-width="1.8" stroke-linejoin="round"/><line x1="8" y1="21" x2="16" y2="21" stroke="url(#rg)" stroke-width="1.8" stroke-linecap="round"/></svg>`;
-  btn.innerHTML = rankingInlineAberto
-    ? `${svgIcon}Fechar Ranking`
-    : `${svgIcon}Ver Ranking`;
+function abrirModalRanking() {
+  const popup = document.getElementById('modal-ranking-popup');
+  popup.style.display = 'flex';
+  renderPopupRanking(rankingCache);
+  // Atualizar em background
+  buscarRanking().then(data => {
+    if (data && data.ok) {
+      rankingCache = data;
+      renderPopupRanking(data);
+    }
+  });
 }
 
-function renderModalRanking(data) {
-  const list  = document.getElementById('modal-ranking-list');
-  const total = document.getElementById('modal-total');
+function fecharModalRanking() {
+  document.getElementById('modal-ranking-popup').style.display = 'none';
+}
+
+function renderPopupRanking(data) {
+  const list  = document.getElementById('popup-ranking-list');
+  const total = document.getElementById('popup-total');
   if (!data || !data.ranking || data.ranking.length === 0) {
-    list.innerHTML = '<p style="text-align:center;color:#556688;font-size:11px;padding:12px 0;">Nenhuma pontuação ainda. Seja o primeiro!</p>';
-    total.textContent = '';
+    list.innerHTML = '<p style="text-align:center;color:#556688;font-size:11px;padding:16px 0;">Nenhuma pontuação ainda.<br>Seja o primeiro!</p>';
+    if (total) total.textContent = '';
     return;
   }
-  total.textContent = data.total + ' jogadores no ranking';
+  if (total) total.textContent = data.total + ' jogadores';
   const medalhas = ['🥇','🥈','🥉'];
   let html = '';
   data.ranking.forEach((item, idx) => {
-    const pos = medalhas[idx] || (item.posicao + 'º');
+    const pos = medalhas[idx] || (idx + 1 + 'º');
     html += `<div class="rank-row normal" style="margin-bottom:4px;">
       <span class="rank-pos">${sanitize(String(pos))}</span>
       <span class="rank-nome">${sanitize(item.nome)}</span>
@@ -1639,6 +1680,9 @@ function renderModalRanking(data) {
   });
   list.innerHTML = html;
 }
+
+// Alias para compatibilidade com o loading bar
+function renderModalRanking(data) { renderPopupRanking(data); }
 
 // ── LOADING BAR ao abrir ──
 function iniciarLoadingBar() {
