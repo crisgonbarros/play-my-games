@@ -1302,6 +1302,7 @@ document.addEventListener('keydown', e => {
     case 'ArrowRight': e.preventDefault(); moveRight(); break;
     case 'ArrowDown':  e.preventDefault(); moveDown(); break;
     case 'ArrowUp':    e.preventDefault(); rotatePiece(); break;
+    case 'z': case 'Z': rotatePieceLeft(); break;
     case ' ':          e.preventDefault(); hardDrop(); break;
     case 'c': case 'C': holdAction(); break;
     case 'p': case 'P': togglePause(); break;
