@@ -76,7 +76,9 @@
     margin: 0 auto;
   }
 
+  .hero { text-align: center; }
   .hero-logo {
+    display: block; margin: 0 auto;
     width: min(238px, 53vw);
     filter: drop-shadow(0 0 16px rgba(0,245,255,0.35));
   }
@@ -143,6 +145,7 @@
     transition: background 0.15s, border-color 0.15s;
   }
   .car-nav:hover { background: rgba(0,245,255,0.08); border-color: rgba(0,245,255,0.5); }
+  .cta-carrossel { display: flex; justify-content: center; margin-top: 18px; }
   .car-dots { display: flex; justify-content: center; gap: 8px; margin-top: 14px; }
   .car-dot {
     width: 7px; height: 7px; border-radius: 4px; padding: 0;
@@ -288,6 +291,9 @@
       <button class="car-nav" id="car-next" aria-label="Próximo">&#8250;</button>
     </div>
     <div class="car-dots" id="car-dots" role="tablist" aria-label="Escolher card"></div>
+    <div class="cta-carrossel">
+      <a class="btn-play" href="/neon-blocks/index.html">▶ Jogar agora</a>
+    </div>
   </section>
 
   <!-- CONTROLES — abas -->
