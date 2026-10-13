@@ -99,93 +99,104 @@
     margin-bottom: 16px;
   }
 
-  /* ── CARDS ── */
-  .cards {
-    display: grid;
-    grid-template-columns: repeat(3, 1fr);
-    gap: 10px; margin-bottom: 40px;
-  }
-  @media (max-width: 560px) { .cards { grid-template-columns: 1fr 1fr; } }
-  @media (max-width: 360px) { .cards { grid-template-columns: 1fr; } }
+  /* ── BLOCOS DE SEÇÃO ── */
+  .bloco { margin-bottom: 36px; }
+  .bloco .label { text-align: center; }
+  main { padding-bottom: 16px !important; }
 
-  .card {
-    background: rgba(255,255,255,0.03);
-    border: 1px solid rgba(0,245,255,0.09);
-    border-radius: 10px; padding: 16px 14px;
-    display: flex; flex-direction: column; gap: 8px;
-    transition: border-color 0.2s;
-  }
-  .card:hover { border-color: rgba(0,245,255,0.3); }
-
-  .card-icon { line-height: 1; }
-
-  .card-title {
-    font-family: 'Orbitron', monospace;
-    font-size: 10px; font-weight: 700;
-    letter-spacing: 1.5px;
-    color: #c8e8ff;
-    text-transform: uppercase;
-  }
-
-  .card-desc { font-size: 11px; color: var(--dim); line-height: 1.65; }
-
-  /* ── CONTROLS ── */
-  .controls-grid {
-    display: grid; grid-template-columns: 1fr 1fr;
-    gap: 10px; margin-bottom: 40px;
-  }
-  @media (max-width: 460px) { .controls-grid { grid-template-columns: 1fr; } }
-
-  .ctrl-block {
-    background: rgba(255,255,255,0.02);
-    border: 1px solid rgba(255,255,255,0.06);
-    border-radius: 10px; padding: 16px;
-  }
-
-  .ctrl-block-title {
+  /* ── CARROSSEL ── */
+  .carousel {
     display: flex; align-items: center; gap: 8px;
-    font-family: 'Orbitron', monospace;
-    font-size: 10px; font-weight: 700;
-    letter-spacing: 2px;
-    color: #c8e8ff;
-    text-transform: uppercase; margin-bottom: 14px;
+    max-width: 460px; margin: 0 auto;
   }
+  .car-viewport {
+    flex: 1; overflow: hidden;
+    border: 1px solid rgba(0,245,255,0.12);
+    border-radius: 12px;
+    background: rgba(255,255,255,0.02);
+    touch-action: pan-y;
+    cursor: grab;
+  }
+  .car-viewport.arrastando { cursor: grabbing; }
+  .car-track { display: flex; transition: transform 0.45s cubic-bezier(.4,0,.2,1); will-change: transform; }
+  .car-track.sem-transicao { transition: none; }
+  .slide {
+    flex: 0 0 100%;
+    display: flex; flex-direction: column; align-items: center; justify-content: center;
+    gap: 10px; padding: 26px 18px 24px; min-height: 168px;
+    text-align: center; user-select: none;
+  }
+  .slide svg { filter: drop-shadow(0 0 10px rgba(0,245,255,0.35)); }
+  .slide-title {
+    font-family: 'Orbitron', monospace;
+    font-size: 13px; font-weight: 700; letter-spacing: 2px;
+    color: #c8e8ff; text-transform: uppercase;
+  }
+  .slide-desc { font-size: 13px; color: var(--dim); line-height: 1.5; max-width: 260px; }
+  .car-nav {
+    flex-shrink: 0;
+    width: 34px; height: 34px; border-radius: 50%;
+    background: transparent; border: 1px solid rgba(0,245,255,0.2);
+    color: var(--accent); font-size: 22px; line-height: 1;
+    cursor: pointer; display: flex; align-items: center; justify-content: center;
+    padding-bottom: 3px;
+    transition: background 0.15s, border-color 0.15s;
+  }
+  .car-nav:hover { background: rgba(0,245,255,0.08); border-color: rgba(0,245,255,0.5); }
+  .car-dots { display: flex; justify-content: center; gap: 8px; margin-top: 14px; }
+  .car-dot {
+    width: 7px; height: 7px; border-radius: 4px; padding: 0;
+    border: none; background: rgba(136,153,187,0.35); cursor: pointer;
+    transition: width 0.25s, background 0.25s;
+  }
+  .car-dot[aria-selected="true"] { width: 20px; background: var(--accent); box-shadow: 0 0 8px rgba(0,245,255,0.5); }
 
-  .ctrl-row { display: flex; align-items: center; gap: 8px; margin-bottom: 7px; }
-
+  /* ── ABAS DE CONTROLES ── */
+  .tabs {
+    display: flex; justify-content: center; gap: 6px; margin-bottom: 14px;
+  }
+  .tab {
+    display: inline-flex; align-items: center; gap: 8px;
+    font-family: 'Orbitron', monospace; font-size: 10px; font-weight: 700;
+    letter-spacing: 2px; text-transform: uppercase;
+    color: var(--dim); background: transparent;
+    border: 1px solid rgba(255,255,255,0.08); border-radius: 20px;
+    padding: 7px 16px; cursor: pointer;
+    transition: color 0.15s, border-color 0.15s, background 0.15s;
+  }
+  .tab[aria-selected="true"] { color: #c8e8ff; border-color: rgba(0,245,255,0.45); background: rgba(0,245,255,0.06); }
+  .painel { max-width: 460px; margin: 0 auto; }
+  .sub {
+    font-size: 10px; letter-spacing: 2px; text-transform: uppercase;
+    color: #556688; margin: 4px 0 8px; text-align: center;
+  }
+  .sub + .ctrl-grid { margin-bottom: 10px; }
+  .ctrl-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px 16px; }
+  @media (max-width: 420px) { .ctrl-grid { grid-template-columns: 1fr; } }
+  .ctrl-row { display: flex; align-items: center; gap: 10px; }
   .key {
     display: inline-flex; align-items: center; justify-content: center;
-    min-width: 28px; height: 22px; padding: 0 5px;
+    min-width: 30px; height: 24px; padding: 0 7px;
     background: rgba(0,245,255,0.07);
     border: 1px solid rgba(0,245,255,0.2);
     border-radius: 4px; font-size: 10px; color: var(--accent);
     white-space: nowrap; flex-shrink: 0;
   }
+  .key-label { font-size: 12px; color: var(--dim); }
 
-  .key-label { font-size: 11px; color: var(--dim); }
+  /* ── SELOS DE COMBOS ── */
+  .selos { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; }
+  @media (max-width: 560px) { .selos { grid-template-columns: 1fr 1fr; } }
+  .selo {
+    display: flex; flex-direction: column; align-items: center; gap: 5px;
+    padding: 12px 6px; border-radius: 10px; text-align: center;
+    border: 1px solid rgba(255,255,255,0.06); background: rgba(255,255,255,0.02);
+  }
+  .selo-nome { font-family: 'Orbitron', monospace; font-size: 10px; font-weight: 700; letter-spacing: 1px; white-space: nowrap; }
+  .selo-info { font-size: 11px; color: var(--dim); }
+  .selo-info b { font-family: 'Orbitron', monospace; font-size: 12px; }
 
-  /* ── COMBOS ── */
-  .combo-list { display: flex; flex-direction: column; gap: 7px; margin-bottom: 40px; }
-  .combo-item {
-    display: flex; align-items: center; gap: 12px;
-    background: rgba(255,255,255,0.02);
-    border: 1px solid rgba(255,255,255,0.05);
-    border-radius: 8px; padding: 11px 14px;
-  }
-  .combo-item svg { flex-shrink: 0; }
-  .combo-badge {
-    font-family: 'Orbitron', monospace;
-    font-size: 11px; font-weight: 700;
-    white-space: nowrap; flex-shrink: 0; min-width: 145px;
-  }
-  .combo-info { font-size: 11px; color: var(--dim); line-height: 1.6; }
-
-  /* ── DIVIDER ── */
-  .divider {
-    height: 1px;
-    background: linear-gradient(90deg, transparent, rgba(0,245,255,0.18), transparent);
-    margin-bottom: 32px;
-  }
+  @media (prefers-reduced-motion: reduce) { .car-track { transition: none; } }
 
   /* ── FOOTER ── */
   footer {
@@ -199,7 +210,6 @@
     nav { padding: 10px 16px; }
     .hero { padding: 24px 16px 20px; }
     main { padding: 8px 16px 48px; }
-    .combo-badge { min-width: 105px; font-size: 9px; }
   }
 </style>
 </head>
@@ -231,176 +241,99 @@
 <!-- MAIN -->
 <main>
 
-  <p class="label">Como jogar</p>
-  <div class="cards">
-    <div class="card">
-      <div class="card-icon"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="28" height="28" fill="none">
-  <defs>
-    <linearGradient id="ng" x1="0%" y1="0%" x2="100%" y2="100%">
-      <stop offset="0%" stop-color="#00f5ff"/>
-      <stop offset="100%" stop-color="#cc00ff"/>
-    </linearGradient>
-  </defs>
-  <rect x="3" y="3" width="8" height="8" rx="1" stroke="url(#ng)" stroke-width="1.8"/><rect x="13" y="3" width="8" height="8" rx="1" stroke="url(#ng)" stroke-width="1.8"/><rect x="3" y="13" width="8" height="8" rx="1" stroke="url(#ng)" stroke-width="1.8"/><rect x="13" y="13" width="8" height="8" rx="1" stroke="url(#ng)" stroke-width="1.8"/>
-</svg></div>
-      <div class="card-title">Encaixe os blocos</div>
-      <div class="card-desc">Posicione os blocos para completar linhas horizontais sem deixar espaços.</div>
+  <!-- COMO JOGAR — carrossel -->
+  <section class="bloco">
+    <p class="label">Como jogar</p>
+    <div class="carousel" id="carousel" aria-roledescription="carrossel" aria-label="Como jogar">
+      <button class="car-nav" id="car-prev" aria-label="Anterior">&#8249;</button>
+      <div class="car-viewport" id="car-viewport">
+        <div class="car-track" id="car-track">
+        <div class="slide" role="group" aria-roledescription="slide" aria-label="1 de 7">
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="40" height="40" fill="none" aria-hidden="true"><defs><linearGradient id="ic-rank" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" stop-color="#00f5ff"/><stop offset="100%" stop-color="#cc00ff"/></linearGradient></defs><path d="M8 21h8M12 17v4M7 4H4a1 1 0 0 0-1 1v2a4 4 0 0 0 4 4M17 4h3a1 1 0 0 1 1 1v2a4 4 0 0 1-4 4" stroke="url(#ic-rank)" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/><path d="M7 4h10v7a5 5 0 0 1-10 0V4z" stroke="url(#ic-rank)" stroke-width="1.8" stroke-linejoin="round"/></svg>
+          <h3 class="slide-title">Entre no ranking</h3>
+          <p class="slide-desc">Cadastre-se e dispute o topo do ranking.</p>
+        </div>
+        <div class="slide" role="group" aria-roledescription="slide" aria-label="2 de 7">
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="40" height="40" fill="none" aria-hidden="true"><defs><linearGradient id="ic-bloc" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" stop-color="#00f5ff"/><stop offset="100%" stop-color="#cc00ff"/></linearGradient></defs><rect x="3" y="3" width="8" height="8" rx="1" stroke="url(#ic-bloc)" stroke-width="1.8"/><rect x="13" y="3" width="8" height="8" rx="1" stroke="url(#ic-bloc)" stroke-width="1.8"/><rect x="3" y="13" width="8" height="8" rx="1" stroke="url(#ic-bloc)" stroke-width="1.8"/><rect x="13" y="13" width="8" height="8" rx="1" stroke="url(#ic-bloc)" stroke-width="1.8"/></svg>
+          <h3 class="slide-title">Encaixe os blocos</h3>
+          <p class="slide-desc">Complete linhas sem deixar buracos.</p>
+        </div>
+        <div class="slide" role="group" aria-roledescription="slide" aria-label="3 de 7">
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="40" height="40" fill="none" aria-hidden="true"><defs><linearGradient id="ic-expl" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" stop-color="#00f5ff"/><stop offset="100%" stop-color="#cc00ff"/></linearGradient></defs><circle cx="12" cy="12" r="4" fill="url(#ic-expl)"/><line x1="12" y1="2" x2="12" y2="6" stroke="url(#ic-expl)" stroke-width="1.8" stroke-linecap="round"/><line x1="12" y1="18" x2="12" y2="22" stroke="url(#ic-expl)" stroke-width="1.8" stroke-linecap="round"/><line x1="2" y1="12" x2="6" y2="12" stroke="url(#ic-expl)" stroke-width="1.8" stroke-linecap="round"/><line x1="18" y1="12" x2="22" y2="12" stroke="url(#ic-expl)" stroke-width="1.8" stroke-linecap="round"/><line x1="4.9" y1="4.9" x2="7.8" y2="7.8" stroke="url(#ic-expl)" stroke-width="1.8" stroke-linecap="round"/><line x1="16.2" y1="16.2" x2="19.1" y2="19.1" stroke="url(#ic-expl)" stroke-width="1.8" stroke-linecap="round"/><line x1="19.1" y1="4.9" x2="16.2" y2="7.8" stroke="url(#ic-expl)" stroke-width="1.8" stroke-linecap="round"/><line x1="7.8" y1="16.2" x2="4.9" y2="19.1" stroke="url(#ic-expl)" stroke-width="1.8" stroke-linecap="round"/></svg>
+          <h3 class="slide-title">Exploda linhas</h3>
+          <p class="slide-desc">Mais linhas de uma vez, mais pontos.</p>
+        </div>
+        <div class="slide" role="group" aria-roledescription="slide" aria-label="4 de 7">
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="40" height="40" fill="none" aria-hidden="true"><defs><linearGradient id="ic-ghost" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" stop-color="#00f5ff"/><stop offset="100%" stop-color="#cc00ff"/></linearGradient></defs><path d="M12 3C8.13 3 5 6.13 5 10v9l2-2 2 2 2-2 2 2 2-2 2 2v-9c0-3.87-3.13-7-7-7z" stroke="url(#ic-ghost)" stroke-width="1.8" stroke-linejoin="round"/><circle cx="9" cy="10" r="1.2" fill="url(#ic-ghost)"/><circle cx="15" cy="10" r="1.2" fill="url(#ic-ghost)"/></svg>
+          <h3 class="slide-title">Ghost piece</h3>
+          <p class="slide-desc">A sombra mostra onde o bloco cai.</p>
+        </div>
+        <div class="slide" role="group" aria-roledescription="slide" aria-label="5 de 7">
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="40" height="40" fill="none" aria-hidden="true"><defs><linearGradient id="ic-hold" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" stop-color="#00f5ff"/><stop offset="100%" stop-color="#cc00ff"/></linearGradient></defs><rect x="3" y="7" width="11" height="13" rx="1.5" stroke="url(#ic-hold)" stroke-width="1.8"/><path d="M14 10h4a3 3 0 0 1 0 6h-4" stroke="url(#ic-hold)" stroke-width="1.8" stroke-linecap="round"/><line x1="7" y1="3" x2="7" y2="7" stroke="url(#ic-hold)" stroke-width="1.8" stroke-linecap="round"/><line x1="11" y1="3" x2="11" y2="7" stroke="url(#ic-hold)" stroke-width="1.8" stroke-linecap="round"/></svg>
+          <h3 class="slide-title">Hold piece</h3>
+          <p class="slide-desc">Guarde um bloco para usar depois.</p>
+        </div>
+        <div class="slide" role="group" aria-roledescription="slide" aria-label="6 de 7">
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="40" height="40" fill="none" aria-hidden="true"><defs><linearGradient id="ic-niv" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" stop-color="#00f5ff"/><stop offset="100%" stop-color="#cc00ff"/></linearGradient></defs><polyline points="3,17 9,11 13,15 21,7" stroke="url(#ic-niv)" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/><polyline points="17,7 21,7 21,11" stroke="url(#ic-niv)" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>
+          <h3 class="slide-title">Níveis</h3>
+          <p class="slide-desc">A cada 10 linhas, mais velocidade.</p>
+        </div>
+        <div class="slide" role="group" aria-roledescription="slide" aria-label="7 de 7">
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="40" height="40" fill="none" aria-hidden="true"><defs><linearGradient id="ic-combo" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" stop-color="#00f5ff"/><stop offset="100%" stop-color="#cc00ff"/></linearGradient></defs><path d="M13 2L4.09 12.57 9 13l-2 9L19 9.14 14 9z" stroke="url(#ic-combo)" stroke-width="1.8" stroke-linejoin="round"/></svg>
+          <h3 class="slide-title">Combos</h3>
+          <p class="slide-desc">Linhas seguidas multiplicam seus pontos.</p>
+        </div>
+        </div>
+      </div>
+      <button class="car-nav" id="car-next" aria-label="Próximo">&#8250;</button>
     </div>
-    <div class="card">
-      <div class="card-icon"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="28" height="28" fill="none">
-  <defs>
-    <linearGradient id="ng" x1="0%" y1="0%" x2="100%" y2="100%">
-      <stop offset="0%" stop-color="#00f5ff"/>
-      <stop offset="100%" stop-color="#cc00ff"/>
-    </linearGradient>
-  </defs>
-  <circle cx="12" cy="12" r="4" fill="url(#ng)"/><line x1="12" y1="2" x2="12" y2="6" stroke="url(#ng)" stroke-width="1.8" stroke-linecap="round"/><line x1="12" y1="18" x2="12" y2="22" stroke="url(#ng)" stroke-width="1.8" stroke-linecap="round"/><line x1="2" y1="12" x2="6" y2="12" stroke="url(#ng)" stroke-width="1.8" stroke-linecap="round"/><line x1="18" y1="12" x2="22" y2="12" stroke="url(#ng)" stroke-width="1.8" stroke-linecap="round"/><line x1="4.9" y1="4.9" x2="7.8" y2="7.8" stroke="url(#ng)" stroke-width="1.8" stroke-linecap="round"/><line x1="16.2" y1="16.2" x2="19.1" y2="19.1" stroke="url(#ng)" stroke-width="1.8" stroke-linecap="round"/><line x1="19.1" y1="4.9" x2="16.2" y2="7.8" stroke="url(#ng)" stroke-width="1.8" stroke-linecap="round"/><line x1="7.8" y1="16.2" x2="4.9" y2="19.1" stroke="url(#ng)" stroke-width="1.8" stroke-linecap="round"/>
-</svg></div>
-      <div class="card-title">Exploda linhas</div>
-      <div class="card-desc">Cada linha completa explode com partículas e som. Mais linhas de uma vez, mais pontos.</div>
-    </div>
-    <div class="card">
-      <div class="card-icon"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="28" height="28" fill="none">
-  <defs>
-    <linearGradient id="ng" x1="0%" y1="0%" x2="100%" y2="100%">
-      <stop offset="0%" stop-color="#00f5ff"/>
-      <stop offset="100%" stop-color="#cc00ff"/>
-    </linearGradient>
-  </defs>
-  <path d="M12 3C8.13 3 5 6.13 5 10v9l2-2 2 2 2-2 2 2 2-2 2 2v-9c0-3.87-3.13-7-7-7z" stroke="url(#ng)" stroke-width="1.8" stroke-linejoin="round"/><circle cx="9" cy="10" r="1.2" fill="url(#ng)"/><circle cx="15" cy="10" r="1.2" fill="url(#ng)"/>
-</svg></div>
-      <div class="card-title">Ghost piece</div>
-      <div class="card-desc">A sombra mostra onde o bloco vai cair. Use para planejar com antecedência.</div>
-    </div>
-    <div class="card">
-      <div class="card-icon"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="28" height="28" fill="none">
-  <defs>
-    <linearGradient id="ng" x1="0%" y1="0%" x2="100%" y2="100%">
-      <stop offset="0%" stop-color="#00f5ff"/>
-      <stop offset="100%" stop-color="#cc00ff"/>
-    </linearGradient>
-  </defs>
-  <rect x="3" y="7" width="11" height="13" rx="1.5" stroke="url(#ng)" stroke-width="1.8"/><path d="M14 10h4a3 3 0 0 1 0 6h-4" stroke="url(#ng)" stroke-width="1.8" stroke-linecap="round"/><line x1="7" y1="3" x2="7" y2="7" stroke="url(#ng)" stroke-width="1.8" stroke-linecap="round"/><line x1="11" y1="3" x2="11" y2="7" stroke="url(#ng)" stroke-width="1.8" stroke-linecap="round"/>
-</svg></div>
-      <div class="card-title">Hold piece</div>
-      <div class="card-desc">Guarde um bloco para usar depois. Essencial nos níveis avançados.</div>
-    </div>
-    <div class="card">
-      <div class="card-icon"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="28" height="28" fill="none">
-  <defs>
-    <linearGradient id="ng" x1="0%" y1="0%" x2="100%" y2="100%">
-      <stop offset="0%" stop-color="#00f5ff"/>
-      <stop offset="100%" stop-color="#cc00ff"/>
-    </linearGradient>
-  </defs>
-  <polyline points="3,17 9,11 13,15 21,7" stroke="url(#ng)" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/><polyline points="17,7 21,7 21,11" stroke="url(#ng)" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
-</svg></div>
-      <div class="card-title">Níveis</div>
-      <div class="card-desc">A cada 10 linhas você sobe de nível — velocidade aumenta, cores mudam.</div>
-    </div>
-    <div class="card">
-      <div class="card-icon"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="28" height="28" fill="none">
-  <defs>
-    <linearGradient id="ng" x1="0%" y1="0%" x2="100%" y2="100%">
-      <stop offset="0%" stop-color="#00f5ff"/>
-      <stop offset="100%" stop-color="#cc00ff"/>
-    </linearGradient>
-  </defs>
-  <path d="M13 2L4.09 12.57 9 13l-2 9L19 9.14 14 9z" stroke="url(#ng)" stroke-width="1.8" stroke-linejoin="round"/>
-</svg></div>
-      <div class="card-title">Combos</div>
-      <div class="card-desc">Complete linhas em sequência para ativar combos e multiplicar sua pontuação.</div>
-    </div>
-  </div>
+    <div class="car-dots" id="car-dots" role="tablist" aria-label="Escolher card"></div>
+  </section>
 
-  <div class="divider"></div>
-
-  <p class="label">Controles</p>
-  <div class="controls-grid">
-    <div class="ctrl-block">
-      <div class="ctrl-block-title"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="28" height="28" fill="none">
-  <defs>
-    <linearGradient id="ng" x1="0%" y1="0%" x2="100%" y2="100%">
-      <stop offset="0%" stop-color="#00f5ff"/>
-      <stop offset="100%" stop-color="#cc00ff"/>
-    </linearGradient>
-  </defs>
-  <rect x="2" y="6" width="20" height="13" rx="2" stroke="url(#ng)" stroke-width="1.8"/><line x1="6" y1="10" x2="6" y2="10.01" stroke="url(#ng)" stroke-width="2" stroke-linecap="round"/><line x1="10" y1="10" x2="10" y2="10.01" stroke="url(#ng)" stroke-width="2" stroke-linecap="round"/><line x1="14" y1="10" x2="14" y2="10.01" stroke="url(#ng)" stroke-width="2" stroke-linecap="round"/><line x1="18" y1="10" x2="18" y2="10.01" stroke="url(#ng)" stroke-width="2" stroke-linecap="round"/><line x1="8" y1="14" x2="16" y2="14" stroke="url(#ng)" stroke-width="2" stroke-linecap="round"/>
-</svg> Teclado</div>
-      <div class="ctrl-row"><span class="key">← →</span><span class="key-label">Mover bloco</span></div>
-      <div class="ctrl-row"><span class="key">↑</span><span class="key-label">Rotacionar</span></div>
-      <div class="ctrl-row"><span class="key">Z</span><span class="key-label">Rotacionar ao contrário</span></div>
-      <div class="ctrl-row"><span class="key">↓</span><span class="key-label">Descer rápido</span></div>
-      <div class="ctrl-row"><span class="key">Espaço</span><span class="key-label">Drop instantâneo</span></div>
-      <div class="ctrl-row"><span class="key">C</span><span class="key-label">Guardar bloco</span></div>
-      <div class="ctrl-row"><span class="key">P</span><span class="key-label">Pausar</span></div>
+  <!-- CONTROLES — abas -->
+  <section class="bloco">
+    <p class="label">Controles</p>
+    <div class="tabs" role="tablist">
+      <button class="tab" role="tab" id="tab-teclado" aria-controls="painel-teclado" aria-selected="true"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="18" height="18" fill="none" aria-hidden="true"><defs><linearGradient id="ic-kbd" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" stop-color="#00f5ff"/><stop offset="100%" stop-color="#cc00ff"/></linearGradient></defs><rect x="2" y="6" width="20" height="13" rx="2" stroke="url(#ic-kbd)" stroke-width="1.8"/><line x1="6" y1="10" x2="6" y2="10.01" stroke="url(#ic-kbd)" stroke-width="2" stroke-linecap="round"/><line x1="10" y1="10" x2="10" y2="10.01" stroke="url(#ic-kbd)" stroke-width="2" stroke-linecap="round"/><line x1="14" y1="10" x2="14" y2="10.01" stroke="url(#ic-kbd)" stroke-width="2" stroke-linecap="round"/><line x1="18" y1="10" x2="18" y2="10.01" stroke="url(#ic-kbd)" stroke-width="2" stroke-linecap="round"/><line x1="8" y1="14" x2="16" y2="14" stroke="url(#ic-kbd)" stroke-width="2" stroke-linecap="round"/></svg>Teclado</button>
+      <button class="tab" role="tab" id="tab-celular" aria-controls="painel-celular" aria-selected="false"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="18" height="18" fill="none" aria-hidden="true"><defs><linearGradient id="ic-cel" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" stop-color="#00f5ff"/><stop offset="100%" stop-color="#cc00ff"/></linearGradient></defs><rect x="7" y="2" width="10" height="20" rx="2" stroke="url(#ic-cel)" stroke-width="1.8"/><circle cx="12" cy="17.5" r="1" fill="url(#ic-cel)"/></svg>Celular</button>
     </div>
-    <div class="ctrl-block">
-      <div class="ctrl-block-title"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="28" height="28" fill="none">
-  <defs>
-    <linearGradient id="ng" x1="0%" y1="0%" x2="100%" y2="100%">
-      <stop offset="0%" stop-color="#00f5ff"/>
-      <stop offset="100%" stop-color="#cc00ff"/>
-    </linearGradient>
-  </defs>
-  <rect x="7" y="2" width="10" height="20" rx="2" stroke="url(#ng)" stroke-width="1.8"/><circle cx="12" cy="17.5" r="1" fill="url(#ng)"/>
-</svg> Mobile</div>
-      <div class="ctrl-row"><span class="key">◀ ▶</span><span class="key-label">Mover bloco</span></div>
-      <div class="ctrl-row"><span class="key">↻ ↺</span><span class="key-label">Rotacionar</span></div>
-      <div class="ctrl-row"><span class="key">▼</span><span class="key-label">Descer rápido</span></div>
-      <div class="ctrl-row"><span class="key">▼▼ DROP</span><span class="key-label">Drop instantâneo</span></div>
-      <div class="ctrl-row"><span class="key">HOLD</span><span class="key-label">Guardar bloco</span></div>
+    <div class="painel" id="painel-teclado" role="tabpanel" aria-labelledby="tab-teclado">
+      <div class="ctrl-grid"><div class="ctrl-row"><span class="key">← →</span><span class="key-label">Mover</span></div><div class="ctrl-row"><span class="key">↑</span><span class="key-label">Girar</span></div><div class="ctrl-row"><span class="key">Z</span><span class="key-label">Girar ao contrário</span></div><div class="ctrl-row"><span class="key">↓</span><span class="key-label">Descer rápido</span></div><div class="ctrl-row"><span class="key">Espaço</span><span class="key-label">Drop instantâneo</span></div><div class="ctrl-row"><span class="key">C</span><span class="key-label">Guardar bloco</span></div><div class="ctrl-row"><span class="key">P</span><span class="key-label">Pausar</span></div></div>
     </div>
-  </div>
-
-  <div class="divider"></div>
-
-  <p class="label">Sistema de combos</p>
-  <div class="combo-list">
-
-    <!-- TRIPLE -->
-    <div class="combo-item">
-      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="26" height="26" fill="none" flex-shrink="0" style="flex-shrink:0">
-        <defs><linearGradient id="cg1" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" stop-color="#ff8800"/><stop offset="100%" stop-color="#ffcc00"/></linearGradient></defs>
-        <rect x="3" y="5" width="18" height="4" rx="1" stroke="url(#cg1)" stroke-width="1.8"/>
-        <rect x="3" y="11" width="18" height="4" rx="1" stroke="url(#cg1)" stroke-width="1.8"/>
-        <rect x="3" y="17" width="18" height="4" rx="1" stroke="url(#cg1)" stroke-width="1.8"/>
-      </svg>
-      <div class="combo-badge" style="color:#ff8800;">TRIPLE!</div>
-      <div class="combo-info">3 linhas seguidas · multiplicador ×2 · flash laranja</div>
+    <div class="painel" id="painel-celular" role="tabpanel" aria-labelledby="tab-celular" hidden>
+      <p class="sub">Botões na tela</p>
+      <div class="ctrl-grid"><div class="ctrl-row"><span class="key">◀ ▶</span><span class="key-label">Mover</span></div><div class="ctrl-row"><span class="key">↻ ↺</span><span class="key-label">Girar</span></div><div class="ctrl-row"><span class="key">▼</span><span class="key-label">Descer rápido</span></div><div class="ctrl-row"><span class="key">▼▼ DROP</span><span class="key-label">Drop instantâneo</span></div><div class="ctrl-row"><span class="key">HOLD</span><span class="key-label">Guardar bloco</span></div></div>
+      <p class="sub">Ou direto no tabuleiro</p>
+      <div class="ctrl-grid"><div class="ctrl-row"><span class="key">Arrastar ← →</span><span class="key-label">Mover</span></div><div class="ctrl-row"><span class="key">Arrastar ↓</span><span class="key-label">Descer rápido</span></div><div class="ctrl-row"><span class="key">Deslizar ↑</span><span class="key-label">Drop instantâneo</span></div><div class="ctrl-row"><span class="key">Tocar</span><span class="key-label">Girar</span></div></div>
     </div>
+  </section>
 
-    <!-- ON FIRE -->
-    <div class="combo-item">
-      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="26" height="26" fill="none" style="flex-shrink:0">
-        <defs><linearGradient id="cg2" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" stop-color="#ff6600"/><stop offset="100%" stop-color="#ff0044"/></linearGradient></defs>
-        <path d="M12 2C12 2 7 7 7 12a5 5 0 0 0 10 0c0-2-1-4-2-5 0 2-1 3-2 3-1 0-2-1.5-1-4z" stroke="url(#cg2)" stroke-width="1.8" stroke-linejoin="round"/>
-        <circle cx="12" cy="17" r="1.5" fill="url(#cg2)"/>
-      </svg>
-      <div class="combo-badge" style="color:#ff6600;">ON FIRE!</div>
-      <div class="combo-info">5 linhas seguidas · multiplicador ×3 · borda flamejante</div>
+  <!-- COMBOS — selos -->
+  <section class="bloco">
+    <p class="label">Combos</p>
+    <div class="selos">
+    <div class="selo">
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="24" height="24" fill="none" aria-hidden="true"><defs><linearGradient id="cg1" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" stop-color="#ff8800"/><stop offset="100%" stop-color="#ffcc00"/></linearGradient></defs><rect x="3" y="5" width="18" height="4" rx="1" stroke="url(#cg1)" stroke-width="1.8"/><rect x="3" y="11" width="18" height="4" rx="1" stroke="url(#cg1)" stroke-width="1.8"/><rect x="3" y="17" width="18" height="4" rx="1" stroke="url(#cg1)" stroke-width="1.8"/></svg>
+      <span class="selo-nome" style="color:#ff8800;">TRIPLE!</span>
+      <span class="selo-info">3 linhas <b style="color:#ff8800;">×2</b></span>
     </div>
-
-    <!-- UNSTOPPABLE -->
-    <div class="combo-item">
-      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="26" height="26" fill="none" style="flex-shrink:0">
-        <defs><linearGradient id="cg3" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" stop-color="#ffee00"/><stop offset="100%" stop-color="#ff8800"/></linearGradient></defs>
-        <path d="M13 2L4 13h7l-2 9 11-12h-7z" stroke="url(#cg3)" stroke-width="1.8" stroke-linejoin="round"/>
-      </svg>
-      <div class="combo-badge" style="color:#ffee00;">UNSTOPPABLE!</div>
-      <div class="combo-info">10 linhas seguidas · multiplicador ×4 · borda elétrica</div>
+    <div class="selo">
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="24" height="24" fill="none" aria-hidden="true"><defs><linearGradient id="cg2" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" stop-color="#ff6600"/><stop offset="100%" stop-color="#ff0044"/></linearGradient></defs><path d="M12 2C12 2 7 7 7 12a5 5 0 0 0 10 0c0-2-1-4-2-5 0 2-1 3-2 3-1 0-2-1.5-1-4z" stroke="url(#cg2)" stroke-width="1.8" stroke-linejoin="round"/><circle cx="12" cy="17" r="1.5" fill="url(#cg2)"/></svg>
+      <span class="selo-nome" style="color:#ff6600;">ON FIRE!</span>
+      <span class="selo-info">5 linhas <b style="color:#ff6600;">×3</b></span>
     </div>
-
-    <!-- GOD MODE -->
-    <div class="combo-item">
-      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="26" height="26" fill="none" style="flex-shrink:0">
-        <defs><linearGradient id="cg4" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" stop-color="#ff0044"/><stop offset="100%" stop-color="#cc00ff"/></linearGradient></defs>
-        <polygon points="12,2 15,9 22,9 16.5,14 18.5,21 12,17 5.5,21 7.5,14 2,9 9,9" stroke="url(#cg4)" stroke-width="1.8" stroke-linejoin="round"/>
-      </svg>
-      <div class="combo-badge" style="color:#ff0044;">GOD MODE</div>
-      <div class="combo-info">15 linhas seguidas · multiplicador ×5 · modo lendário</div>
+    <div class="selo">
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="24" height="24" fill="none" aria-hidden="true"><defs><linearGradient id="cg3" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" stop-color="#ffee00"/><stop offset="100%" stop-color="#ff8800"/></linearGradient></defs><path d="M13 2L4 13h7l-2 9 11-12h-7z" stroke="url(#cg3)" stroke-width="1.8" stroke-linejoin="round"/></svg>
+      <span class="selo-nome" style="color:#ffee00;">UNSTOPPABLE!</span>
+      <span class="selo-info">10 linhas <b style="color:#ffee00;">×4</b></span>
     </div>
-  </div>
+    <div class="selo">
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="24" height="24" fill="none" aria-hidden="true"><defs><linearGradient id="cg4" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" stop-color="#ff0044"/><stop offset="100%" stop-color="#cc00ff"/></linearGradient></defs><polygon points="12,2 15,9 22,9 16.5,14 18.5,21 12,17 5.5,21 7.5,14 2,9 9,9" stroke="url(#cg4)" stroke-width="1.8" stroke-linejoin="round"/></svg>
+      <span class="selo-nome" style="color:#ff0044;">GOD MODE</span>
+      <span class="selo-info">15 linhas <b style="color:#ff0044;">×5</b></span>
+    </div>
+    </div>
+  </section>
 
 </main>
 
@@ -408,6 +341,143 @@
   <a class="btn-play" href="/neon-blocks/index.html">▶ Jogar agora</a>
   <p>By @cristiano.barros1 ® 2026</p>
 </footer>
+
+<script>
+// ═══════════════════════════════════════
+//  CARROSSEL "COMO JOGAR"
+//  Troca a cada 3s. Interagiu (seta, ponto, arrastar, passar o mouse)?
+//  Pausa, e volta a girar 8s depois da última interação.
+// ═══════════════════════════════════════
+(function() {
+  const AUTO_MS = 3000, RETOMAR_MS = 8000;
+  const track = document.getElementById('car-track');
+  const viewport = document.getElementById('car-viewport');
+  const dotsWrap = document.getElementById('car-dots');
+  const slides = Array.from(track.children);
+  const total = slides.length;
+  const reduzMovimento = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+  // Clone do primeiro no fim → volta ao início sem "rebobinar"
+  track.appendChild(slides[0].cloneNode(true)).setAttribute('aria-hidden', 'true');
+
+  let idx = 0, timer = null, retomar = null, hover = false;
+
+  const dots = slides.map((_, i) => {
+    const b = document.createElement('button');
+    b.className = 'car-dot'; b.setAttribute('role', 'tab');
+    b.setAttribute('aria-label', 'Card ' + (i + 1));
+    b.addEventListener('click', () => { interagiu(); ir(i); });
+    dotsWrap.appendChild(b);
+    return b;
+  });
+
+  function pintar() {
+    const atual = idx % total;
+    dots.forEach((d, i) => d.setAttribute('aria-selected', i === atual ? 'true' : 'false'));
+  }
+
+  function posicionar(animado, extraPx) {
+    track.classList.toggle('sem-transicao', !animado);
+    const px = extraPx || 0;
+    track.style.transform = `translateX(calc(${-idx * 100}% + ${px}px))`;
+  }
+
+  function ir(i, animado = true) { idx = i; posicionar(animado); pintar(); }
+
+  function proximo() {
+    if (idx >= total) { idx = 0; posicionar(false); void track.offsetWidth; }
+    ir(idx + 1);
+  }
+  function anterior() {
+    if (idx <= 0) { idx = total; posicionar(false); void track.offsetWidth; }
+    ir(idx - 1);
+  }
+
+  track.addEventListener('transitionend', () => {
+    if (idx === total) { idx = 0; posicionar(false); pintar(); }
+  });
+
+  function iniciarAuto() {
+    pararAuto();
+    if (reduzMovimento || hover) return;
+    timer = setInterval(proximo, AUTO_MS);
+  }
+  function pararAuto() { clearInterval(timer); timer = null; }
+  function interagiu() {
+    pararAuto(); clearTimeout(retomar);
+    retomar = setTimeout(() => { retomar = null; iniciarAuto(); }, RETOMAR_MS);
+  }
+
+  document.getElementById('car-next').addEventListener('click', () => { interagiu(); proximo(); });
+  document.getElementById('car-prev').addEventListener('click', () => { interagiu(); anterior(); });
+
+  // Mouse em cima pausa (computador)
+  const carousel = document.getElementById('carousel');
+  carousel.addEventListener('mouseenter', () => { hover = true; pararAuto(); });
+  carousel.addEventListener('mouseleave', () => { hover = false; if (!retomar) iniciarAuto(); });
+
+  // Arrastar com dedo ou mouse
+  let inicioX = null, deltaX = 0, largura = 1;
+  viewport.addEventListener('pointerdown', e => {
+    inicioX = e.clientX; deltaX = 0; largura = viewport.offsetWidth;
+    viewport.classList.add('arrastando');
+    viewport.setPointerCapture(e.pointerId);
+    interagiu();
+    if (idx === total) { idx = 0; }
+  });
+  viewport.addEventListener('pointermove', e => {
+    if (inicioX === null) return;
+    deltaX = e.clientX - inicioX;
+    posicionar(false, deltaX);
+  });
+  function soltar() {
+    if (inicioX === null) return;
+    viewport.classList.remove('arrastando');
+    const limite = Math.min(60, largura * 0.2);
+    inicioX = null;
+    if (deltaX < -limite) proximo();
+    else if (deltaX > limite) anterior();
+    else ir(idx);
+    deltaX = 0;
+  }
+  viewport.addEventListener('pointerup', soltar);
+  viewport.addEventListener('pointercancel', soltar);
+
+  // Setas do teclado quando o carrossel está em foco
+  carousel.addEventListener('keydown', e => {
+    if (e.key === 'ArrowRight') { interagiu(); proximo(); }
+    if (e.key === 'ArrowLeft')  { interagiu(); anterior(); }
+  });
+
+  // Aba do navegador escondida: não gira
+  document.addEventListener('visibilitychange', () => {
+    if (document.hidden) pararAuto(); else if (!retomar) iniciarAuto();
+  });
+
+  ir(0, false);
+  iniciarAuto();
+})();
+
+// ═══════════════════════════════════════
+//  ABAS TECLADO | CELULAR
+// ═══════════════════════════════════════
+(function() {
+  const abas = [
+    [document.getElementById('tab-teclado'), document.getElementById('painel-teclado')],
+    [document.getElementById('tab-celular'), document.getElementById('painel-celular')],
+  ];
+  function abrir(n) {
+    abas.forEach(([tab, painel], i) => {
+      tab.setAttribute('aria-selected', i === n ? 'true' : 'false');
+      painel.hidden = i !== n;
+    });
+  }
+  abas.forEach(([tab], i) => tab.addEventListener('click', () => abrir(i)));
+  // Celular e tablet abrem direto na aba Celular
+  const toque = window.matchMedia('(pointer: coarse)').matches || window.innerWidth <= 900;
+  abrir(toque ? 1 : 0);
+})();
+</script>
 
 <script>
 // ═══════════════════════════════════════
