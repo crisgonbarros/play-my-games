@@ -1,0 +1,260 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Marcador de Bozó</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Rubik:wght@400;500;700;800&family=Kalam:wght@700&display=swap" rel="stylesheet">
+<style>
+/* VOICE: mesa de bar, prático e direto, feito pra usar com o copo na mão
+   IDEA: a folhinha de papel do marcador de Bozó em cima da mesa de couro
+   PICTURE: a cartela do jogador da vez (1 F 4 / 2 S 5 / 3 Q 6 / G) com anotações à mão
+   COLOUR and TYPE: couro vinho, papel creme, vermelho pra "de boca"; Rubik + Kalam nas marcações
+   LAYOUT: placar no topo, cartela grande, folha completa embaixo; coluna única no celular */
+:root{color-scheme:light dark;
+--bg:light-dark(#5a2418,#1e0f0b);--bg2:light-dark(#47190f,#140906);
+--paper:light-dark(#fbf6ea,#2a1d17);--ink:light-dark(#231712,#f3e9dc);--mute:light-dark(#7c6a5e,#b4a294);
+--line:light-dark(#d9ccb6,#4a382e);--red:light-dark(#c8102e,#ff5a6e);--blue:light-dark(#1f4fa8,#8fb3ff);
+--gold:#f2c14e;--on:#fbf6ea}
+:root[data-theme=light]{color-scheme:light}:root[data-theme=dark]{color-scheme:dark}
+*{box-sizing:border-box;min-width:0}
+body{margin:0;background:var(--bg);background-image:radial-gradient(circle at 20% 0,rgba(255,255,255,.08),transparent 60%);color:var(--ink);font:16px/1.5 Rubik,system-ui,sans-serif;overflow-x:clip;min-height:100vh}
+button{font:inherit;cursor:pointer;border:0;border-radius:12px;min-height:44px;padding:0 16px}
+button:focus-visible,input:focus-visible{outline:3px solid var(--gold);outline-offset:2px}
+.wrap{max-width:760px;margin:0 auto;padding:16px max(4vw,12px) 40px}
+header{display:flex;align-items:center;justify-content:space-between;gap:12px;color:var(--on);margin-bottom:14px}
+h1{font-size:clamp(26px,6vw,36px);line-height:1.05;margin:0;font-weight:800}
+.sub{color:#e8cfc2;font-size:14px}
+.paper{background:var(--paper);border-radius:18px;padding:16px;box-shadow:0 2px 0 var(--bg2),0 14px 30px rgba(0,0,0,.35)}
+.ghost{background:rgba(255,255,255,.14);color:var(--on)}
+.pri{background:var(--red);color:#fff;font-weight:700}
+.sec{background:transparent;color:var(--ink);border:2px solid var(--line)}
+/* setup */
+.plist{display:grid;gap:8px;margin:12px 0}
+.prow{display:flex;gap:8px}
+.prow input{flex:1;font:inherit;font-size:16px;padding:10px 12px;border:2px solid var(--line);border-radius:12px;background:transparent;color:var(--ink);min-height:44px}
+.prow button{background:transparent;color:var(--mute);border:2px solid var(--line);padding:0 14px}
+.row{display:flex;gap:10px;flex-wrap:wrap}
+.hint{color:var(--mute);font-size:14px;margin:8px 0 0}
+/* placar */
+.rank{display:flex;gap:8px;overflow-x:auto;padding-bottom:6px;margin-bottom:12px}
+.chip{flex:none;display:flex;align-items:center;gap:10px;background:rgba(255,255,255,.12);color:var(--on);border-radius:14px;padding:8px 14px 8px 8px;min-height:52px;border:2px solid transparent;text-align:left}
+.chip.cur{border-color:var(--gold);background:rgba(255,255,255,.2)}
+.chip .pos{width:30px;height:30px;border-radius:50%;display:grid;place-items:center;background:rgba(0,0,0,.25);font-weight:700;font-size:14px}
+.chip.lead .pos{background:var(--gold);color:#3a1a00}
+.chip b{display:block;font-size:20px;line-height:1.1}
+.chip small{font-size:13px;opacity:.85;white-space:nowrap}
+/* cartela */
+.turn{display:flex;justify-content:space-between;align-items:baseline;gap:10px;margin-bottom:12px;flex-wrap:wrap}
+.turn h2{margin:0;font-size:clamp(24px,6vw,32px);line-height:1.05}
+.turn .tot{font-size:15px;color:var(--mute)}
+.turn .tot b{font-size:30px;color:var(--ink)}
+.board{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:0;border:2px solid var(--ink);border-radius:10px;overflow:hidden}
+.cell{background:transparent;color:var(--ink);border-radius:0;border:1px solid var(--line);min-height:84px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;padding:6px}
+.cell .lb{font-size:13px;color:var(--mute)}
+.cell .v{font:700 clamp(30px,8vw,40px)/1 Kalam,cursive;color:var(--blue)}
+.cell.boca .v{color:var(--red)}
+.cell .v.x{color:var(--mute)}
+.cell .tag{font-size:12px;color:var(--red);font-weight:500}
+.cell.empty .v{color:var(--line)}
+.cell:hover{background:rgba(0,0,0,.04)}
+.cell.mid{background:rgba(200,16,46,.05)}
+.gcell{grid-column:2}
+.blank{border:0;border-top:1px solid var(--line)}
+.tools{display:flex;gap:10px;margin-top:14px;flex-wrap:wrap}
+.tools button{flex:1 1 140px}
+/* folha completa */
+h3{font-size:18px;margin:22px 0 10px;color:var(--on)}
+.scroll{overflow-x:auto}
+table{border-collapse:collapse;width:100%;font-size:15px}
+th,td{padding:8px 10px;border-bottom:1px solid var(--line);text-align:right;white-space:nowrap}
+th:first-child,td:first-child{text-align:left;color:var(--mute);position:sticky;left:0;background:var(--paper)}
+thead th{font-weight:700;color:var(--ink)}
+td.b{color:var(--red);font-weight:700}
+td.xx{color:var(--mute)}
+tfoot td{font-weight:800;font-size:17px;border:0;color:var(--ink)}
+/* folha de opções */
+.ov{position:fixed;inset:0;background:rgba(0,0,0,.55);display:none;align-items:flex-end;justify-content:center;z-index:9}
+.ov.on{display:flex}
+.sheet{background:var(--paper);width:100%;max-width:520px;border-radius:20px 20px 0 0;padding:18px 16px 24px;animation:up .2s ease-out}
+@media(min-width:600px){.ov{align-items:center}.sheet{border-radius:20px}}
+@keyframes up{from{transform:translateY(30px);opacity:0}}
+@media(prefers-reduced-motion:reduce){.sheet{animation:none}}
+.sheet h4{margin:0 0 4px;font-size:22px}
+.opts{display:grid;grid-template-columns:repeat(auto-fit,minmax(88px,1fr));gap:10px;margin:14px 0}
+.opt{background:transparent;border:2px solid var(--line);color:var(--ink);min-height:64px;display:flex;flex-direction:column;align-items:center;justify-content:center;line-height:1.1}
+.opt b{font:700 28px/1 Kalam,cursive;color:var(--blue)}
+.opt.bc{border-color:var(--red)}.opt.bc b{color:var(--red)}
+.opt small{font-size:13px;color:var(--mute)}
+.opt.sel{background:rgba(31,79,168,.1)}
+.risk{width:100%;background:var(--ink);color:var(--paper);font-weight:700}
+.win{text-align:center}
+.win .big{font:800 clamp(34px,9vw,52px)/1.05 Rubik;margin:6px 0}
+.final{list-style:none;padding:0;margin:14px 0;text-align:left}
+.final li{display:flex;justify-content:space-between;padding:10px 4px;border-bottom:1px solid var(--line);font-size:18px}
+.final li:first-child{font-weight:800;color:var(--red)}
+.hide{display:none!important}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <div><h1>Marcador de Bozó</h1><div class="sub" id="sub">Monte a mesa e comece</div></div>
+    <button class="ghost hide" id="menuBtn">Menu</button>
+  </header>
+
+  <section id="setup" class="paper">
+    <strong>Jogadores</strong> <span class="hint">(2 a 10, na ordem da mesa)</span>
+    <div class="plist" id="plist"></div>
+    <div class="row">
+      <button class="sec" id="addP">+ Jogador</button>
+      <button class="pri" id="start" style="flex:1">Começar partida</button>
+    </div>
+    <p class="hint">Toque numa casa da cartela pra marcar. Jogada "de boca" vale mais: Full 15, Seguida 25, Quadrada 35, General 100.</p>
+  </section>
+
+  <section id="game" class="hide">
+    <div class="rank" id="rank"></div>
+    <div class="paper">
+      <div class="turn">
+        <h2 id="pname"></h2>
+        <div class="tot">Total <b id="ptot">0</b></div>
+      </div>
+      <div class="board" id="board"></div>
+      <div class="tools">
+        <button class="sec" id="undo">Desfazer última</button>
+        <button class="sec" id="next">Próximo jogador</button>
+      </div>
+    </div>
+    <h3>Folha completa</h3>
+    <div class="paper scroll"><table id="sheetT"></table></div>
+  </section>
+</div>
+
+<div class="ov" id="ov"><div class="sheet" id="sheet"></div></div>
+
+<script>
+{
+const CASAS=[
+ {k:'c1',n:'Ás',f:1},{k:'F',n:'Full',v:[10,15]},{k:'c4',n:'Quadra',f:4},
+ {k:'c2',n:'Duque',f:2},{k:'S',n:'Seguida',v:[20,25]},{k:'c5',n:'Quina',f:5},
+ {k:'c3',n:'Terno',f:3},{k:'Q',n:'Quadrada',v:[30,35]},{k:'c6',n:'Sena',f:6},
+ {k:'G',n:'General',v:[40,100]}];
+const ORDEM=['c1','c2','c3','c4','c5','c6','F','S','Q','G'];
+const byK=Object.fromEntries(CASAS.map(c=>[c.k,c]));
+const $=id=>document.getElementById(id);
+const esc=s=>String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+let S={names:['',''],players:[],cur:0,hist:[],on:false};
+try{const s=JSON.parse(localStorage.getItem('bozo'));if(s&&s.names)S=s}catch(e){}
+const save=()=>{try{localStorage.setItem('bozo',JSON.stringify(S))}catch(e){}};
+
+const total=p=>Object.values(p.m).reduce((a,x)=>a+(x?x.v:0),0);
+const filled=p=>ORDEM.filter(k=>p.m[k]).length;
+const done=()=>S.players.every(p=>filled(p)===10);
+
+function renderSetup(){
+  $('plist').innerHTML=S.names.map((n,i)=>`<div class="prow"><input id="pn${i}" data-i="${i}" value="${esc(n)}" placeholder="Jogador ${i+1}" maxlength="18" autocomplete="off">${S.names.length>2?`<button data-rm="${i}" aria-label="Remover">✕</button>`:''}</div>`).join('');
+  $('addP').disabled=S.names.length>=10;$('addP').style.opacity=S.names.length>=10?.4:1;
+}
+$('plist').addEventListener('input',e=>{if(e.target.dataset.i!=null){S.names[+e.target.dataset.i]=e.target.value;save()}});
+$('plist').addEventListener('click',e=>{const r=e.target.dataset.rm;if(r!=null){S.names.splice(+r,1);renderSetup();save()}});
+$('addP').onclick=()=>{if(S.names.length<10){S.names.push('');renderSetup();$('pn'+(S.names.length-1)).focus();save()}};
+$('start').onclick=()=>{
+  S.names=S.names.map((n,i)=>n.trim()||'Jogador '+(i+1));
+  S.players=S.names.map(n=>({n,m:{}}));S.cur=0;S.hist=[];S.on=true;save();show();
+};
+
+function rankList(){return S.players.map((p,i)=>({i,n:p.n,t:total(p),f:filled(p)})).sort((a,b)=>b.t-a.t)}
+function renderGame(){
+  const p=S.players[S.cur],r=rankList(),top=r[0].t;
+  const rodada=Math.min(10,Math.min(...S.players.map(filled))+1);
+  $('sub').textContent=done()?'Partida encerrada':`Rodada ${rodada} de 10 · ${S.players.length} jogadores`;
+  $('rank').innerHTML=r.map((x,j)=>{const pos=r.findIndex(y=>y.t===x.t)+1;return `<button class="chip${x.i===S.cur?' cur':''}${x.t===top&&top>0?' lead':''}" data-p="${x.i}"><span class="pos">${pos}º</span><span><small>${esc(x.n)}</small><b>${x.t}</b></span></button>`}).join('');
+  $('pname').textContent=p.n;$('ptot').textContent=total(p);
+  let h='';
+  CASAS.forEach(c=>{
+    if(c.k==='G')h+='<div class="blank"></div>';
+    const m=p.m[c.k];
+    const val=!m?'–':m.x?'X':m.v;
+    h+=`<button class="cell${c.f?'':' mid'}${!m?' empty':''}${m&&m.b?' boca':''}" data-k="${c.k}"><span class="lb">${c.n}</span><span class="v${m&&m.x?' x':''}">${val}</span>${m&&m.b?'<span class="tag">de boca</span>':''}</button>`;
+    if(c.k==='G')h+='<div class="blank"></div>';
+  });
+  $('board').innerHTML=h;
+  $('undo').disabled=!S.hist.length;$('undo').style.opacity=S.hist.length?1:.4;
+  // folha
+  const th=S.players.map(x=>`<th>${esc(x.n)}</th>`).join('');
+  const rows=ORDEM.map(k=>`<tr><td>${byK[k].n}</td>${S.players.map(x=>{const m=x.m[k];return `<td class="${m&&m.b?'b':''}${m&&m.x?' xx':''}">${!m?'':m.x?'X':m.v}</td>`}).join('')}</tr>`).join('');
+  $('sheetT').innerHTML=`<thead><tr><th>Casa</th>${th}</tr></thead><tbody>${rows}</tbody><tfoot><tr><td>Total</td>${S.players.map(x=>`<td>${total(x)}</td>`).join('')}</tr></tfoot>`;
+}
+$('rank').addEventListener('click',e=>{const b=e.target.closest('[data-p]');if(b){S.cur=+b.dataset.p;save();renderGame()}});
+$('board').addEventListener('click',e=>{const b=e.target.closest('[data-k]');if(b)openCell(b.dataset.k)});
+
+function openCell(k){
+  const c=byK[k],p=S.players[S.cur],m=p.m[k];
+  let opts;
+  if(c.f)opts=[1,2,3,4,5].map(q=>({v:q*c.f,l:q+(q>1?' dados':' dado')}));
+  else opts=[{v:c.v[0],l:'Normal'},{v:c.v[1],l:'De boca',b:1}];
+  $('sheet').innerHTML=`<h4>${c.n}</h4><div class="hint">${esc(p.n)}${m?' · atual: '+(m.x?'riscado':m.v):''}</div>
+   <div class="opts">${opts.map((o,i)=>`<button class="opt${o.b?' bc':''}${m&&!m.x&&m.v===o.v?' sel':''}" data-o="${i}"><b>${o.v}</b><small>${o.l}</small></button>`).join('')}</div>
+   <button class="risk" data-o="x">Riscar (vale 0)</button>
+   <div class="row" style="margin-top:10px">${m?'<button class="sec" data-o="clr" style="flex:1">Apagar marcação</button>':''}<button class="sec" data-o="cancel" style="flex:1">Cancelar</button></div>`;
+  $('sheet').onclick=e=>{
+    const o=e.target.closest('[data-o]');if(!o)return;const a=o.dataset.o;
+    if(a==='cancel')return close();
+    const prev=m?{...m}:null;let nv;
+    if(a==='x')nv={v:0,x:1};else if(a==='clr')nv=null;else{const s=opts[+a];nv={v:s.v,b:s.b?1:0}}
+    if(nv)p.m[k]=nv;else delete p.m[k];
+    S.hist.push({p:S.cur,k,prev});if(S.hist.length>200)S.hist.shift();
+    close();
+    if(nv&&!prev)advance();
+    save();renderGame();if(done())finish();
+  };
+  $('ov').classList.add('on');
+}
+function close(){$('ov').classList.remove('on')}
+$('ov').addEventListener('click',e=>{if(e.target.id==='ov')close()});
+function advance(){
+  const n=S.players.length;
+  for(let i=1;i<=n;i++){const j=(S.cur+i)%n;if(filled(S.players[j])<10){S.cur=j;return}}
+}
+$('next').onclick=()=>{advance();save();renderGame()};
+$('undo').onclick=()=>{
+  const h=S.hist.pop();if(!h)return;
+  const p=S.players[h.p];if(h.prev)p.m[h.k]=h.prev;else delete p.m[h.k];
+  S.cur=h.p;save();renderGame();
+};
+
+function finish(){
+  const r=rankList();
+  $('sheet').innerHTML=`<div class="win"><div class="hint">Fim de jogo</div><div class="big">${esc(r[0].n)} venceu</div>
+   <ol class="final">${r.map((x,j)=>`<li><span>${j+1}º ${esc(x.n)}</span><span>${x.t}</span></li>`).join('')}</ol>
+   <div class="row"><button class="pri" data-o="again" style="flex:1">Nova partida</button><button class="sec" data-o="new" style="flex:1">Trocar jogadores</button></div>
+   <button class="sec" data-o="see" style="width:100%;margin-top:10px">Ver a folha</button></div>`;
+  $('sheet').onclick=e=>{const o=e.target.closest('[data-o]');if(!o)return;const a=o.dataset.o;
+    if(a==='again'){S.players=S.names.map(n=>({n,m:{}}));S.cur=0;S.hist=[];}
+    if(a==='new'){S.on=false}
+    close();save();show();};
+  $('ov').classList.add('on');
+}
+function menu(){
+  $('sheet').innerHTML=`<h4>Menu</h4><div style="display:grid;gap:10px;margin-top:14px">
+   <button class="sec" data-o="restart">Reiniciar partida (mesmos jogadores)</button>
+   <button class="sec" data-o="new">Trocar jogadores</button>
+   <button class="sec" data-o="cancel">Voltar</button></div>`;
+  $('sheet').onclick=e=>{const o=e.target.closest('[data-o]');if(!o)return;const a=o.dataset.o;
+    if(a==='restart'){S.players=S.names.map(n=>({n,m:{}}));S.cur=0;S.hist=[]}
+    if(a==='new')S.on=false;
+    close();save();show();};
+  $('ov').classList.add('on');
+}
+$('menuBtn').onclick=menu;
+function show(){
+  $('setup').classList.toggle('hide',S.on);$('game').classList.toggle('hide',!S.on);$('menuBtn').classList.toggle('hide',!S.on);
+  if(S.on)renderGame();else{$('sub').textContent='Monte a mesa e comece';renderSetup()}
+}
+show();
+}
+</script>
+</body>
+</html>
