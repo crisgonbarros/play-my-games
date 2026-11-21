@@ -228,11 +228,11 @@ $('undo').onclick=()=>{
 function finish(){
   const r=rankList();
   $('sheet').innerHTML=`<div class="win"><div class="hint">Fim de jogo</div><div class="big">${esc(r[0].n)} venceu</div>
-   <p class="hint">${esc(r[0].n)} começa a próxima partida, e a mesa segue a ordem a partir dele.</p><ol class="final">${r.map((x,j)=>`<li><span>${j+1}º ${esc(x.n)}</span><span>${x.t}</span></li>`).join('')}</ol>
+   <p class="hint">${esc(r[0].n)} começa a próxima partida. A ordem segue a classificação abaixo.</p><ol class="final">${r.map((x,j)=>`<li><span>${j+1}º ${esc(x.n)}</span><span>${x.t}</span></li>`).join('')}</ol>
    <div class="row"><button class="pri" data-o="again" style="flex:1">Nova partida</button><button class="sec" data-o="new" style="flex:1">Trocar jogadores</button></div>
    <button class="sec" data-o="see" style="width:100%;margin-top:10px">Ver a folha</button></div>`;
   $('sheet').onclick=e=>{const o=e.target.closest('[data-o]');if(!o)return;const a=o.dataset.o;
-    if(a==='again'){const w=r[0].i;S.names=S.names.slice(w).concat(S.names.slice(0,w));S.players=S.names.map(n=>({n,m:{}}));S.cur=0;S.hist=[];}
+    if(a==='again'){S.names=r.map(x=>S.players[x.i].n);S.players=S.names.map(n=>({n,m:{}}));S.cur=0;S.hist=[];}
     if(a==='new'){S.on=false}
     close();save();show();};
   $('ov').classList.add('on');
