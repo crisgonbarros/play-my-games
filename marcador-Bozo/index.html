@@ -92,7 +92,7 @@ tfoot td{font-weight:800;font-size:17px;border:0;color:var(--ink)}
 .opt.sel{background:rgba(31,79,168,.1)}
 .risk{width:100%;background:var(--ink);color:var(--paper);font-weight:700}
 .win{text-align:center}
-.win .big{font:800 clamp(34px,9vw,52px)/1.05 Rubik;margin:6px 0}
+.win .big{font:800 clamp(34px,9vw,52px)/1.05 Rubik,system-ui,sans-serif;margin:6px 0}
 .final{list-style:none;padding:0;margin:14px 0;text-align:left}
 .final li{display:flex;justify-content:space-between;padding:10px 4px;border-bottom:1px solid var(--line);font-size:18px}
 .final li:first-child{font-weight:800;color:var(--green)}
@@ -102,6 +102,16 @@ tfoot td{font-weight:800;font-size:17px;border:0;color:var(--ink)}
 .ig:hover span{text-decoration:underline}
 .foot{text-align:center;color:#e8cfc2;font-size:14px;margin-top:28px}
 .foot .ig{color:var(--gold)}
+.lbl{font-size:13px;color:var(--mute)}
+.toast{position:fixed;left:50%;top:42%;transform:translate(-50%,-50%) scale(.96);background:var(--paper);color:var(--ink);padding:18px 30px;border-radius:20px;border:3px solid var(--gold);box-shadow:0 20px 50px rgba(0,0,0,.45);text-align:center;opacity:0;pointer-events:none;z-index:8;transition:opacity .2s,transform .2s;max-width:90vw}
+.toast.on{opacity:1;transform:translate(-50%,-50%) scale(1)}
+.toast small{display:block;font-size:14px;color:var(--mute)}
+.toast b{display:block;font-size:clamp(28px,8vw,44px);line-height:1.1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+@media(prefers-reduced-motion:reduce){.toast{transition:none}}
+.nightmini{margin:6px 0 14px;font-size:15px;color:var(--mute)}
+.nightmini b{color:var(--ink)}
+.prev{width:100%;border-radius:12px;display:block;margin:12px 0}
+.dl{display:flex;align-items:center;justify-content:center;text-decoration:none;font-weight:700;background:var(--green);color:#fff;border-radius:12px;min-height:44px}
 .hide{display:none!important}
 </style>
 </head>
@@ -127,7 +137,7 @@ tfoot td{font-weight:800;font-size:17px;border:0;color:var(--ink)}
     <div class="rank" id="rank"></div>
     <div class="paper">
       <div class="turn">
-        <h2 id="pname"></h2>
+        <div><div class="lbl">Na vez</div><h2 id="pname"></h2></div>
         <div class="tot">Total <b id="ptot">0</b></div>
       </div>
       <div class="board" id="board"></div>
@@ -138,10 +148,12 @@ tfoot td{font-weight:800;font-size:17px;border:0;color:var(--ink)}
     </div>
     <h3>Folha completa</h3>
     <div class="paper scroll"><table id="sheetT"></table></div>
+    <div id="nightW" class="hide"><h3 id="nightH">Placar da noite</h3><div class="paper scroll"><table id="nightT"></table></div></div>
   </section>
   <footer class="foot">by <a class="ig" href="https://www.instagram.com/cristiano.barros1/" target="_blank" rel="noopener" aria-label="Instagram de Cristiano Barros"><svg class="igi" viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="3" width="18" height="18" rx="5" fill="none" stroke="currentColor" stroke-width="2"/><circle cx="12" cy="12" r="4.2" fill="none" stroke="currentColor" stroke-width="2"/><circle cx="17.3" cy="6.7" r="1.3" fill="currentColor"/></svg><span>@cristiano.barros1</span></a></footer>
 </div>
 
+<div class="toast" id="toast" aria-live="polite"></div>
 <div class="ov" id="ov"><div class="sheet" id="sheet"></div></div>
 
 <script>
@@ -157,6 +169,7 @@ const $=id=>document.getElementById(id);
 const esc=s=>String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 let S={names:['',''],players:[],cur:0,hist:[],on:false};
 try{const s=JSON.parse(localStorage.getItem('bozo'));if(s&&s.names)S=s}catch(e){}
+if(!S.night)S.night=[];
 const save=()=>{try{localStorage.setItem('bozo',JSON.stringify(S))}catch(e){}};
 
 const total=p=>Object.values(p.m).reduce((a,x)=>a+(x?x.v:0),0);
@@ -172,12 +185,33 @@ $('plist').addEventListener('click',e=>{const r=e.target.dataset.rm;if(r!=null){
 $('addP').onclick=()=>{if(S.names.length<10){S.names.push('');renderSetup();$('pn'+(S.names.length-1)).focus();save()}};
 $('start').onclick=()=>{
   S.names=S.names.map((n,i)=>n.trim()||'Jogador '+(i+1));
-  S.players=S.names.map(n=>({n,m:{}}));S.cur=0;S.hist=[];S.on=true;save();show();
+  newGame();S.on=true;save();show();
 };
 
 const bocas=p=>Object.values(p.m).filter(x=>x&&x.b).length;
 function rankList(){return S.players.map((p,i)=>({i,n:p.n,t:total(p),f:filled(p),bc:bocas(p)})).sort((a,b)=>b.t-a.t||b.bc-a.bc)}
+function nightStats(){
+  const m={};S.night.forEach(g=>{Object.entries(g.t).forEach(([n,t])=>{m[n]=m[n]||{n,w:0,t:0,g:0};m[n].t+=t;m[n].g++});if(m[g.w])m[g.w].w++});
+  return Object.values(m).sort((a,b)=>b.w-a.w||b.t-a.t);
+}
+function recordGame(){
+  if(S.rec)S.night.pop();
+  const r=rankList();S.night.push({w:r[0].n,t:Object.fromEntries(S.players.map(p=>[p.n,total(p)]))});S.rec=true;save();
+}
+function newGame(){S.players=S.names.map(n=>({n,m:{}}));S.cur=0;S.hist=[];S.rec=false}
+function renderNight(){
+  const ns=nightStats();$('nightW').classList.toggle('hide',!ns.length);if(!ns.length)return;
+  $('nightH').textContent=`Placar da noite · ${S.night.length} ${S.night.length>1?'partidas':'partida'}`;
+  $('nightT').innerHTML=`<thead><tr><th>Jogador</th><th>Vitórias</th><th>Pontos</th></tr></thead><tbody>${ns.map((x,j)=>`<tr><td>${j+1}º ${esc(x.n)}</td><td class="${j===0&&x.w?'b':''}">${x.w}</td><td>${x.t}</td></tr>`).join('')}</tbody>`;
+}
+let tt;
+function showTurn(){
+  const p=S.players[S.cur];if(!p||done())return;
+  $('toast').innerHTML=`<small>Sua vez</small><b>${esc(p.n)}</b>`;$('toast').classList.add('on');
+  clearTimeout(tt);tt=setTimeout(()=>$('toast').classList.remove('on'),1400);
+}
 function renderGame(){
+  if(S.rec&&!done()){S.night.pop();S.rec=false;save()}
   const p=S.players[S.cur],r=rankList(),top=r[0].t;
   const rodada=Math.min(10,Math.min(...S.players.map(filled))+1);
   $('sub').textContent=done()?'Partida encerrada':`Rodada ${rodada} de 10 · ${S.players.length} jogadores`;
@@ -196,6 +230,7 @@ function renderGame(){
   // folha
   const th=S.players.map(x=>`<th>${esc(x.n)}</th>`).join('');
   const rows=ORDEM.map(k=>`<tr><td>${byK[k].n}</td>${S.players.map(x=>{const m=x.m[k];return `<td class="${m&&m.b?'b':''}${m&&m.x?' xx':''}">${!m?'':m.x?'X':m.v}</td>`}).join('')}</tr>`).join('');
+  renderNight();
   $('sheetT').innerHTML=`<thead><tr><th>Casa</th>${th}</tr></thead><tbody>${rows}</tbody><tfoot><tr><td>Total</td>${S.players.map(x=>`<td>${total(x)}</td>`).join('')}</tr></tfoot>`;
 }
 $('rank').addEventListener('click',e=>{const b=e.target.closest('[data-p]');if(b){S.cur=+b.dataset.p;save();renderGame()}});
@@ -218,8 +253,8 @@ function openCell(k){
     if(nv)p.m[k]=nv;else delete p.m[k];
     S.hist.push({p:S.cur,k,prev});if(S.hist.length>200)S.hist.shift();
     close();
-    if(nv&&!prev)advance();
-    save();renderGame();if(done())finish();
+    const was=S.cur;if(nv&&!prev)advance();
+    save();renderGame();if(done())finish();else if(S.cur!==was)showTurn();
   };
   $('ov').classList.add('on');
 }
@@ -229,7 +264,7 @@ function advance(){
   const n=S.players.length;
   for(let i=1;i<=n;i++){const j=(S.cur+i)%n;if(filled(S.players[j])<10){S.cur=j;return}}
 }
-$('next').onclick=()=>{advance();save();renderGame()};
+$('next').onclick=()=>{advance();save();renderGame();showTurn()};
 $('undo').onclick=()=>{
   const h=S.hist.pop();if(!h)return;
   const p=S.players[h.p];if(h.prev)p.m[h.k]=h.prev;else delete p.m[h.k];
@@ -237,24 +272,75 @@ $('undo').onclick=()=>{
 };
 
 function finish(){
-  const r=rankList();
+  recordGame();
+  const r=rankList(),ns=nightStats();
   $('sheet').innerHTML=`<div class="win"><div class="hint">Fim de jogo</div><div class="big">${esc(r[0].n)} venceu</div>
-   <p class="hint">${esc(r[0].n)} começa a próxima partida. A ordem segue a classificação abaixo. Empate nos pontos: fica na frente quem fez mais jogadas de boca.</p><ol class="final">${r.map((x,j)=>`<li><span>${j+1}º ${esc(x.n)}</span><span>${x.t}${r.some((y,k)=>k!==j&&y.t===x.t)?` <small class="hint">(${x.bc} de boca)</small>`:''}</span></li>`).join('')}</ol>
+   <p class="hint">${esc(r[0].n)} começa a próxima partida. A ordem segue a classificação abaixo. Empate nos pontos: fica na frente quem fez mais jogadas de boca.</p><ol class="final">${r.map((x,j)=>`<li><span>${j+1}º ${esc(x.n)}</span><span>${x.t}${r.some((y,k)=>k!==j&&y.t===x.t)?` <small class="hint">(${x.bc} de boca)</small>`:''}</span></li>`).join('')}</ol>${S.night.length>1?`<div class="nightmini">Placar da noite (${S.night.length} partidas): ${ns.map(x=>`<b>${esc(x.n)}</b> ${x.w}`).join(' · ')}</div>`:''}
+   <button class="dl" data-o="share" style="width:100%;border:0;margin-bottom:10px">Compartilhar resultado</button>
    <div class="row"><button class="pri" data-o="again" style="flex:1">Nova partida</button><button class="sec" data-o="new" style="flex:1">Trocar jogadores</button></div>
    <button class="sec" data-o="see" style="width:100%;margin-top:10px">Ver a folha</button></div>`;
   $('sheet').onclick=e=>{const o=e.target.closest('[data-o]');if(!o)return;const a=o.dataset.o;
-    if(a==='again'){S.names=r.map(x=>S.players[x.i].n);S.players=S.names.map(n=>({n,m:{}}));S.cur=0;S.hist=[];}
+    if(a==='share')return shareImg(r);
+    if(a==='again'){S.names=r.map(x=>S.players[x.i].n);newGame()}
     if(a==='new'){S.on=false}
     close();save();show();};
   $('ov').classList.add('on');
+}
+function rr(c,x,y,w,h,r){c.beginPath();c.moveTo(x+r,y);c.arcTo(x+w,y,x+w,y+h,r);c.arcTo(x+w,y+h,x,y+h,r);c.arcTo(x,y+h,x,y,r);c.arcTo(x,y,x+w,y,r);c.closePath()}
+async function drawImg(r){
+  try{await document.fonts.ready}catch(e){}
+  const W=1080,H=1350,cv=document.createElement('canvas');cv.width=W;cv.height=H;const c=cv.getContext('2d');
+  const F='Rubik, system-ui, sans-serif';
+  let g=c.createLinearGradient(0,0,0,H);g.addColorStop(0,'#6e2b1c');g.addColorStop(1,'#3a140c');c.fillStyle=g;c.fillRect(0,0,W,H);
+  c.textAlign='center';c.fillStyle='#fbf6ea';c.font=`800 64px ${F}`;c.fillText('Marcador de Bozó',W/2,120);
+  c.fillStyle='#e8cfc2';c.font=`400 30px ${F}`;
+  const d=new Date().toLocaleDateString('pt-BR',{day:'2-digit',month:'long',year:'numeric'});
+  c.fillText(`${d} · partida ${S.night.length} da noite`,W/2,170);
+  c.fillStyle='rgba(0,0,0,.3)';rr(c,76,226,928,960,36);c.fill();
+  c.fillStyle='#fbf6ea';rr(c,70,214,940,960,36);c.fill();
+  c.fillStyle='#7c6a5e';c.font=`500 30px ${F}`;c.fillText('Vencedor',W/2,290);
+  c.fillStyle='#1b8a4a';c.font=`800 84px ${F}`;c.fillText(r[0].n,W/2,375,860);
+  c.fillStyle='#231712';c.font=`700 40px ${F}`;c.fillText(`${r[0].t} pontos`,W/2,430);
+  c.strokeStyle='#d9ccb6';c.lineWidth=2;c.beginPath();c.moveTo(120,475);c.lineTo(960,475);c.stroke();
+  const ns=nightStats(),showN=S.night.length>1,top=500,bot=showN?990:1140,rh=Math.min(84,(bot-top)/r.length),fs=Math.round(Math.min(rh,78)*.46),off=top+((bot-top)-rh*r.length)/2;
+  r.forEach((x,j)=>{const y=off+rh*j+rh*.62;
+    c.textAlign='left';c.fillStyle=j===0?'#1b8a4a':'#7c6a5e';c.font=`700 ${fs}px ${F}`;c.fillText(`${j+1}º`,130,y);
+    c.fillStyle=j===0?'#1b8a4a':'#231712';c.font=`${j===0?800:500} ${fs}px ${F}`;c.fillText(x.n,215,y,520);
+    c.textAlign='right';c.fillStyle=j===0?'#1b8a4a':'#1f4fa8';c.font=`700 ${fs}px ${F}`;c.fillText(x.t,950,y);
+    if(j<r.length-1){c.strokeStyle='#ece2d0';c.beginPath();c.moveTo(130,off+rh*(j+1));c.lineTo(950,off+rh*(j+1));c.stroke()}});
+  if(showN){c.textAlign='center';c.fillStyle='#7c6a5e';c.font=`500 28px ${F}`;c.fillText(`Placar da noite · ${S.night.length} partidas`,W/2,1050);
+    c.fillStyle='#231712';c.font=`700 32px ${F}`;c.fillText(ns.slice(0,5).map(x=>`${x.n} ${x.w}`).join('  ·  '),W/2,1105,860);}
+  c.font=`700 34px ${F}`;c.textAlign='left';const t='@cristiano.barros1',pre='by ';
+  const tw=c.measureText(t).width;c.font=`400 34px ${F}`;const pw=c.measureText(pre).width;const total=pw+44+tw,x0=(W-total)/2,yb=1268;
+  c.fillStyle='#e8cfc2';c.fillText(pre,x0,yb);
+  const ix=x0+pw+2,iy=yb-28;c.strokeStyle='#f2c14e';c.lineWidth=3.5;rr(c,ix,iy,32,32,9);c.stroke();c.beginPath();c.arc(ix+16,iy+16,7.5,0,7);c.stroke();c.fillStyle='#f2c14e';c.beginPath();c.arc(ix+25,iy+7,2.3,0,7);c.fill();
+  c.font=`700 34px ${F}`;c.fillText(t,ix+44,yb);
+  return cv;
+}
+async function shareImg(r){
+  const cv=await drawImg(r);
+  const blob=await new Promise(res=>cv.toBlob(res,'image/png'));
+  const file=new File([blob],'resultado-bozo.png',{type:'image/png'});
+  let can=false;try{can=!!(navigator.canShare&&navigator.canShare({files:[file]}))}catch(e){}
+  const url=URL.createObjectURL(blob);
+  $('sheet').innerHTML=`<h4>Imagem do resultado</h4>
+   <img class="prev" src="${url}" alt="Resultado da partida">
+   <div class="row">${can?'<button class="dl" data-o="sh" style="flex:1;border:0">Compartilhar</button>':''}<a class="${can?'sec':'dl'}" href="${url}" download="resultado-bozo.png" style="flex:1;display:flex;align-items:center;justify-content:center;text-decoration:none;font-weight:700;border-radius:12px;min-height:44px">Baixar imagem</a></div>
+   ${can?'':'<div class="hint">Se o botão não baixar, segure o dedo na imagem pra salvar.</div>'}
+   <button class="sec" data-o="back" style="width:100%;margin-top:10px">Voltar</button>`;
+  $('sheet').onclick=async e=>{const o=e.target.closest('[data-o]');if(!o)return;
+    if(o.dataset.o==='back')return finish();
+    if(o.dataset.o==='sh'){try{await navigator.share({files:[file],title:'Resultado do Bozó'})}catch(err){}}};
 }
 function menu(){
   $('sheet').innerHTML=`<h4>Menu</h4><div style="display:grid;gap:10px;margin-top:14px">
    <button class="sec" data-o="restart">Reiniciar partida (mesmos jogadores)</button>
    <button class="sec" data-o="new">Trocar jogadores</button>
+   ${S.night.length?'<button class="sec" data-o="zero" id="zeroB">Zerar placar da noite</button>':''}
    <button class="sec" data-o="cancel">Voltar</button></div>`;
   $('sheet').onclick=e=>{const o=e.target.closest('[data-o]');if(!o)return;const a=o.dataset.o;
-    if(a==='restart'){S.players=S.names.map(n=>({n,m:{}}));S.cur=0;S.hist=[]}
+    if(a==='zero'){if(!o.dataset.ok){o.dataset.ok=1;o.textContent='Toque de novo pra confirmar';return}S.night=[];S.rec=false}
+    if(a==='restart')newGame();
     if(a==='new')S.on=false;
     close();save();show();};
   $('ov').classList.add('on');
