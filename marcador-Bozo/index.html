@@ -165,12 +165,13 @@ $('start').onclick=()=>{
   S.players=S.names.map(n=>({n,m:{}}));S.cur=0;S.hist=[];S.on=true;save();show();
 };
 
-function rankList(){return S.players.map((p,i)=>({i,n:p.n,t:total(p),f:filled(p)})).sort((a,b)=>b.t-a.t)}
+const bocas=p=>Object.values(p.m).filter(x=>x&&x.b).length;
+function rankList(){return S.players.map((p,i)=>({i,n:p.n,t:total(p),f:filled(p),bc:bocas(p)})).sort((a,b)=>b.t-a.t||b.bc-a.bc)}
 function renderGame(){
   const p=S.players[S.cur],r=rankList(),top=r[0].t;
   const rodada=Math.min(10,Math.min(...S.players.map(filled))+1);
   $('sub').textContent=done()?'Partida encerrada':`Rodada ${rodada} de 10 · ${S.players.length} jogadores`;
-  $('rank').innerHTML=r.map((x,j)=>{const pos=r.findIndex(y=>y.t===x.t)+1;return `<button class="chip${x.i===S.cur?' cur':''}${x.t===top&&top>0?' lead':''}" data-p="${x.i}"><span class="pos">${pos}º</span><span><small>${esc(x.n)}</small><b>${x.t}</b></span></button>`}).join('');
+  $('rank').innerHTML=r.map((x,j)=>{const pos=r.findIndex(y=>y.t===x.t&&y.bc===x.bc)+1;return `<button class="chip${x.i===S.cur?' cur':''}${x.t===top&&top>0?' lead':''}" data-p="${x.i}"><span class="pos">${pos}º</span><span><small>${esc(x.n)}</small><b>${x.t}</b></span></button>`}).join('');
   $('pname').textContent=p.n;$('ptot').textContent=total(p);
   let h='';
   CASAS.forEach(c=>{
@@ -228,7 +229,7 @@ $('undo').onclick=()=>{
 function finish(){
   const r=rankList();
   $('sheet').innerHTML=`<div class="win"><div class="hint">Fim de jogo</div><div class="big">${esc(r[0].n)} venceu</div>
-   <p class="hint">${esc(r[0].n)} começa a próxima partida. A ordem segue a classificação abaixo.</p><ol class="final">${r.map((x,j)=>`<li><span>${j+1}º ${esc(x.n)}</span><span>${x.t}</span></li>`).join('')}</ol>
+   <p class="hint">${esc(r[0].n)} começa a próxima partida. A ordem segue a classificação abaixo. Empate nos pontos: fica na frente quem fez mais jogadas de boca.</p><ol class="final">${r.map((x,j)=>`<li><span>${j+1}º ${esc(x.n)}</span><span>${x.t}${r.some((y,k)=>k!==j&&y.t===x.t)?` <small class="hint">(${x.bc} de boca)</small>`:''}</span></li>`).join('')}</ol>
    <div class="row"><button class="pri" data-o="again" style="flex:1">Nova partida</button><button class="sec" data-o="new" style="flex:1">Trocar jogadores</button></div>
    <button class="sec" data-o="see" style="width:100%;margin-top:10px">Ver a folha</button></div>`;
   $('sheet').onclick=e=>{const o=e.target.closest('[data-o]');if(!o)return;const a=o.dataset.o;
