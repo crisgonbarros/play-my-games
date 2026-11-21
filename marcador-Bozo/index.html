@@ -94,6 +94,11 @@ tfoot td{font-weight:800;font-size:17px;border:0;color:var(--ink)}
 .final{list-style:none;padding:0;margin:14px 0;text-align:left}
 .final li{display:flex;justify-content:space-between;padding:10px 4px;border-bottom:1px solid var(--line);font-size:18px}
 .final li:first-child{font-weight:800;color:var(--red)}
+.by{margin:14px 0 0;font-size:15px;color:var(--mute)}
+.ig{color:var(--red);font-weight:700;text-decoration:none;padding:10px 2px;display:inline-block}
+.ig:hover{text-decoration:underline}
+.foot{text-align:center;color:#e8cfc2;font-size:14px;margin-top:28px}
+.foot .ig{color:var(--gold)}
 .hide{display:none!important}
 </style>
 </head>
@@ -111,6 +116,7 @@ tfoot td{font-weight:800;font-size:17px;border:0;color:var(--ink)}
       <button class="sec" id="addP">+ Jogador</button>
       <button class="pri" id="start" style="flex:1">Começar partida</button>
     </div>
+    <p class="by">by <a class="ig" href="https://www.instagram.com/cristiano.barros1/" target="_blank" rel="noopener">@cristiano.barros1</a></p>
     <p class="hint">Toque numa casa da cartela pra marcar. Jogada "de boca" vale mais: Full 15, Seguida 25, Quadrada 35, General 100.</p>
   </section>
 
@@ -130,6 +136,7 @@ tfoot td{font-weight:800;font-size:17px;border:0;color:var(--ink)}
     <h3>Folha completa</h3>
     <div class="paper scroll"><table id="sheetT"></table></div>
   </section>
+  <footer class="foot">by <a class="ig" href="https://www.instagram.com/cristiano.barros1/" target="_blank" rel="noopener">@cristiano.barros1</a></footer>
 </div>
 
 <div class="ov" id="ov"><div class="sheet" id="sheet"></div></div>
